@@ -1,0 +1,64 @@
+version: "3.9"
+
+services:
+  api:
+    build: ../api
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db-setup
+    environment:
+      AWS_ACCESS_KEY_ID: dummy
+      AWS_SECRET_ACCESS_KEY: dummy
+      AWS_REGION: us-east-1
+
+  front:
+    build: ../front
+    ports:
+      - "8002:8080"
+    depends_on:
+      - api
+    environment:
+      VITE_API_URL: http://api:8000
+      VITE_USE_AUTH0: false
+      
+
+  db:
+    image: amazon/dynamodb-local
+    container_name: dynamodb_local
+    ports:
+      - "8001:8000"
+    command: -jar DynamoDBLocal.jar -sharedDb
+  
+  db-setup:
+    image: amazon/aws-cli
+    depends_on:
+      - db
+    environment:
+      AWS_ACCESS_KEY_ID: fake
+      AWS_SECRET_ACCESS_KEY: fake
+      AWS_DEFAULT_REGION: us-east-1
+    volumes:
+      - ./init-db.sh:/init-db.sh
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["/init-db.sh && tail -f /dev/null"]
+
+
+  sensor-simulator:
+    image: alpine/curl
+    depends_on:
+      - api
+    volumes:
+      - ./sensor-simulator.sh:/sensor-simulator.sh
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["/sensor-simulator.sh"]
+  
+  client-simulator:
+    image: alpine/curl
+    depends_on:
+      - api
+      - sensor-simulator
+    volumes:
+      - ./client-simulator.sh:/client-simulator.sh
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["/client-simulator.sh"]

@@ -1,0 +1,165 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Nature-inspired color palette */
+    --background: 45 25% 97%;
+    --foreground: 25 30% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 25 30% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 25 30% 15%;
+
+    /* Forest green primary */
+    --primary: 140 60% 25%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Warm earth secondary */
+    --secondary: 35 25% 85%;
+    --secondary-foreground: 25 30% 25%;
+
+    --muted: 45 15% 92%;
+    --muted-foreground: 25 15% 45%;
+
+    /* Coffee brown accent */
+    --accent: 25 40% 75%;
+    --accent-foreground: 25 30% 25%;
+
+    /* Alert red for critical states */
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 45 15% 88%;
+    --input: 45 15% 88%;
+    --ring: 140 60% 25%;
+
+    /* Custom sensor colors */
+    --temperature: 15 85% 60%;
+    --humidity: 200 85% 55%;
+    --ph: 270 60% 60%;
+    --npk: 320 70% 55%;
+    --soil: 35 60% 50%;
+    --sunlight: 45 85% 60%;
+
+    /* Gradients */
+    --gradient-nature: linear-gradient(135deg, hsl(140 60% 25%), hsl(100 40% 35%));
+    --gradient-earth: linear-gradient(135deg, hsl(35 60% 50%), hsl(25 40% 40%));
+    --gradient-sky: linear-gradient(135deg, hsl(200 85% 55%), hsl(220 70% 65%));
+    --gradient-forest: linear-gradient(135deg, hsl(140 40% 25%), hsl(140 45% 35%));
+    --gradient-coffee: linear-gradient(135deg, hsl(25 35% 30%), hsl(30 40% 40%));
+
+    /* Shadows */
+    --shadow-soft: 0 4px 20px -2px hsl(140 60% 25% / 0.1);
+    --shadow-card: 0 8px 30px -4px hsl(25 30% 15% / 0.08);
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    overscroll-behavior-y: contain;
+  }
+
+  /* Mobile-optimized scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Better touch targets */
+  button, [role="button"], .clickable {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Prevent iOS zoom on input focus */
+  input[type="text"], 
+  input[type="email"], 
+  input[type="password"], 
+  input[type="number"], 
+  textarea {
+    font-size: 16px;
+  }
+
+  /* Improve mobile readability */
+  @media (max-width: 768px) {
+    h1 { font-size: 1.75rem; line-height: 1.2; }
+    h2 { font-size: 1.5rem; line-height: 1.3; }
+    h3 { font-size: 1.25rem; line-height: 1.4; }
+    
+    .card {
+      border-radius: 1rem;
+    }
+  }
+}
