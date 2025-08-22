@@ -18,11 +18,17 @@ COPY . .
 # Etapa 2: Imagen optimizada
 FROM python:3.9-slim AS deploy
 
+# Crear usuario no-root
+RUN useradd --create-home --shell /bin/bash app
+
 # Copiar dependencias instaladas desde builder
 COPY --from=builder /root/.local /home/app/.local
 
 # Copiar código de aplicación
 COPY --from=builder /app /home/app/
+
+# Cambiar permisos del directorio
+RUN chown -R app:app /home/app
 
 # Configurar PATH para que encuentre los paquetes instalados
 ENV PATH=/home/app/.local/bin:$PATH
