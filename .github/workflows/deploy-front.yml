@@ -1,5 +1,6 @@
 name: Deploy Frontend
 
+# Se activará cuando detecte cambios en los archivos dentro del front-end
 on:
   push:
     branches:
@@ -13,14 +14,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    # Descargar código del repositorio
       - name: Checkout code
         uses: actions/checkout@v4
 
+    # Configurar inicial de Node.js
       - name: Configure Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
+    # Ejecuta los archivos para levantar el front-end
       - name: Build frontend
         run: |
           cd front
