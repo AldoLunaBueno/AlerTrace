@@ -6,7 +6,7 @@ on:
       - developer
       - main
     paths:
-      - 'frontend/**'
+      - 'front/**'
 
 jobs:
   deploy:
