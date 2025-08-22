@@ -10,7 +10,7 @@ on:
       - 'front/**'
 
 jobs:
-  deploy:
+  deploy-dev:
     runs-on: ubuntu-latest
 
     steps:
@@ -31,6 +31,12 @@ jobs:
           npm install
           npm run build
 
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: front/dist/
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -38,5 +44,27 @@ jobs:
           aws-secret-access-key: ${{ secrets.S3_USER_AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Synchronize files to S3
+      - name: Synchronize files to S3 dev
         run: aws s3 sync front/dist/ s3://sachatrace-dev-front --delete
+
+  deploy-prod:
+    runs-on: ubuntu-latest
+    needs: deploy-dev
+    if: success()
+
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: front/dist/
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.S3_USER_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.S3_USER_AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Synchronize files to S3 prod
+        run: aws s3 sync front/dist/ s3://sachatrace-front --delete 
