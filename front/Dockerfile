@@ -1,9 +1,9 @@
-# Imagen base con Node
-FROM node:20
+# Imagen base ligera de Node
+FROM node:20-alpine
 
 WORKDIR /app
 
-# Copiamos package.json y lock para aprovechar la caché de dependencias
+# Copiar paquetes de json y locks para aprovechar la caché de dependencias
 COPY package*.json ./
 
 RUN npm install
