@@ -39,7 +39,7 @@ services:
       AWS_SECRET_ACCESS_KEY: fake
       AWS_DEFAULT_REGION: us-east-1
     volumes:
-      - ./init-db.sh:/init-db.sh
+      - ./scripts/init-db.sh:/init-db.sh
     entrypoint: ["/bin/sh", "-c"]
     command: ["/init-db.sh && tail -f /dev/null"]
 
@@ -49,7 +49,7 @@ services:
     depends_on:
       - api
     volumes:
-      - ./sensor-simulator.sh:/sensor-simulator.sh
+      - ./scripts/sensor-simulator.sh:/sensor-simulator.sh
     entrypoint: ["/bin/sh", "-c"]
     command: ["/sensor-simulator.sh"]
   
@@ -59,6 +59,6 @@ services:
       - api
       - sensor-simulator
     volumes:
-      - ./client-simulator.sh:/client-simulator.sh
+      - ./scripts/client-simulator.sh:/client-simulator.sh
     entrypoint: ["/bin/sh", "-c"]
     command: ["/client-simulator.sh"]
