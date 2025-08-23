@@ -1,0 +1,36 @@
+#!/usr/bin/bash
+
+commit_msg=$(cat $1)
+
+commit_msg_title_max_size=72
+valid_types="feat fix docs test refactor style chore build ci perf"
+commit_convention_pattern=$'^((\w+)(\((\w+)\))?: (\w[^\n]*))\n?(.*)?$'
+
+# Validate format
+if [[ $commit_msg =~ $commit_convention_pattern ]]; then
+    title="${BASH_REMATCH[1]}"
+    type="${BASH_REMATCH[2]}"
+    optional_scope="${BASH_REMATCH[4]}"
+    description="${BASH_REMATCH[5]}"
+    optional_body="${BASH_REMATCH[6]}"
+
+    # Validate type
+    echo $valid_types | grep -w -q $type
+    if (( $? != 0 )); then
+        echo "Error: '$type' is not a valid type for the commit message"
+        echo "Please use: $valid_types"
+        exit -1
+    fi
+
+    # Validate title size
+    if (( ${#title} > 100 )); then
+        echo "Error: commit message title has ${#title} characters, but limit is $commit_msg_title_max_size"
+        exit -1
+    fi
+else
+    echo "Error: wrong commit message format"
+    exit -1 
+fi
+
+echo "Valid commit message"
+exit 0

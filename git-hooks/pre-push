@@ -1,0 +1,12 @@
+#!/usr/bin/bash
+
+branch_name=$(git rev-parse --abbrev-ref HEAD)
+
+# Prevent pushing to main
+if [[ "$branch_name" == "main" ]]; then
+    echo "Direct push to '$branch_name' is blocked. Use a develop/ branch."
+    exit 1
+fi
+
+echo "Push allowed from branch '$branch_name'"
+exit 0
