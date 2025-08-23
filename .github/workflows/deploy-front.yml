@@ -68,6 +68,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.S3_USER_AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # Configura credenciales AWS para prod
+      # Configura credenciales AWS para producción
       - name: Synchronize files to S3 prod
         run: aws s3 sync front/dist/ s3://sachatrace-front --delete 
