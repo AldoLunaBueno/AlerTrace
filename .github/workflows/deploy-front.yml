@@ -48,6 +48,13 @@ jobs:
       - name: Synchronize files to S3 dev
         run: aws s3 sync front/dist/ s3://sachatrace-dev-front --delete
 
+    # Invalidar caché de CloudFront para un despliegue inmediato
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --paths "/index.html"
+
   deploy-prod:
     runs-on: ubuntu-latest
   needs: deploy-dev
@@ -71,3 +78,10 @@ jobs:
       # Configura credenciales AWS para prod
       - name: Synchronize files to S3 prod
         run: aws s3 sync front/dist/ s3://sachatrace-front --delete 
+
+      # Invalidar caché de CloudFront para un despliegue inmediato
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --paths "/index.html"
