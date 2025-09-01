@@ -1,0 +1,339 @@
+# ================================
+# SACHATRACE - GITIGNORE COMPLETO
+# ================================
+
+# =====================================
+# VARIABLES DE ENTORNO Y CONFIGURACIÓN
+# =====================================
+# Archivo activo (contiene secretos)
+.env
+.env.local
+.env.*.local
+
+# Archivos de backup de configuración
+.env.backup
+.env.orig
+
+# Configuración específica del desarrollador
+.vscode/settings.json
+.vscode/launch.json
+.idea/workspace.xml
+.idea/tasks.xml
+
+# ================================
+# PYTHON - BACKEND API
+# ================================
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+.coverage.xml
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff (si usas Django en el futuro)
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff (si usas Flask)
+instance/
+.webassets-cache
+
+# Scrapy stuff
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# PEP 582
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.virtualenv
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# ================================
+# BASE DE DATOS
+# ================================
+# Archivos de base de datos locales
+*.db
+*.sqlite
+*.sqlite3
+
+# Dumps de base de datos
+*.sql.backup
+*.dump
+*.dmp
+
+# Logs de migraciones locales
+migrations.log
+
+# Archivos temporales de PostgreSQL
+*.psql_history
+
+# ================================
+# DOCKER Y CONTENEDORES
+# ================================
+# Archivos temporales de Docker
+.dockerignore.bak
+docker-compose.override.yml
+
+# Volúmenes de datos locales
+/volumes/
+/data/
+postgres-data/
+redis-data/
+
+# ================================
+# AWS Y SERVICIOS EN LA NUBE
+# ================================
+# Credenciales de AWS
+.aws/
+aws-credentials.json
+
+# Archivos de configuración de AWS SAM
+.aws-sam/
+
+# Archivos de Terraform (si usas IaC)
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# CloudFormation
+*.template.yaml.bak
+
+# ================================
+# FRONTEND (REACT/VUE/ETC)
+# ================================
+# Dependencias
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Archivos de build del frontend
+dist/
+dist-ssr/
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ================================
+# IOT Y SENSORES
+# ================================
+# Archivos de calibración de sensores
+sensor-calibration/
+*.calibration
+
+# Logs de datos de sensores en desarrollo
+sensor-logs/
+*.sensor.log
+
+# Certificados de dispositivos IoT
+device-certs/
+*.pem
+*.crt
+*.key
+
+# Archivos de configuración de dispositivos
+device-configs/
+*.device.json
+
+# ================================
+# LOGS Y MONITOREO
+# ================================
+# Logs de aplicación
+logs/
+*.log
+*.log.*
+
+# Archivos de debugging
+debug/
+*.debug
+
+# Archivos de profiling
+profile/
+*.prof
+
+# ================================
+# ARCHIVOS TEMPORALES
+# ================================
+# Archivos temporales del sistema
+.tmp/
+tmp/
+temp/
+.cache/
+
+# Archivos de backup
+*.bak
+*.backup
+*.swp
+*.swo
+*~
+
+# Archivos de sistema
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ================================
+# DOCUMENTACIÓN Y REPORTES
+# ================================
+# Documentación generada
+docs/build/
+*.pdf.tmp
+
+# Reportes de coverage
+coverage/
+coverage.xml
+htmlcov/
+
+# ================================
+# CONFIGURACIÓN DE DESARROLLO
+# ================================
+# Configuración local de scripts
+local-scripts/
+dev-tools/
+
+# Archivos de configuración personal
+.personal/
+.local-config/
+
+# ================================
+# ARCHIVOS DE PRODUCCIÓN
+# ================================
+# Secrets de producción (nunca versionar)
+secrets/
+*.secret
+production-config/
+
+# Archivos de deployment
+deployment-keys/
+*.deployment
+
+# ================================
+# EXCEPTIONS (ARCHIVOS A VERSIONAR)
+# ================================
+# Asegurar que estos SÍ se versionen
+!.env.development
+!.env.staging
+!.env.production
+!.env.example
+!.gitkeep
+!README.md
+
+# Mantener estructura de directorios vacíos
+!.gitkeep
