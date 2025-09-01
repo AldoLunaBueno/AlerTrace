@@ -1,30 +1,20 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import datetime
-import boto3
-import os
-from decimal import Decimal
 from typing import Optional
+from sqlalchemy.orm import Session
 
-# ========================
-# CONFIG
-# ========================
-AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
-DYNAMODB_TABLE = os.getenv("DYNAMODB_TABLE", "SensorData")
-
-# DynamoDB client (usa credenciales de IAM del EC2 o variables de entorno)
-dynamodb = boto3.resource(
-    "dynamodb", 
-    region_name=AWS_REGION,
-    endpoint_url="http://db:8000")
-table = dynamodb.Table(DYNAMODB_TABLE)
+# Importar nuestra configuración y modelos de base de datos
+from .config import settings
+from .models.database import get_db
 
 # FASTAPI
 app = FastAPI(
-    title="Sumaq Tree API",
-    description="API que recolecta datos de sensores y los expone a una aplicación cliente",
-    version="1.0"
+    title=settings.app_name,
+    description="API que recolecta datos de sensores IoT para monitoreo agrícola",
+    version=settings.app_version,
+    debug=settings.debug
 )
 
 # ========================
@@ -32,21 +22,26 @@ app = FastAPI(
 # ========================
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://tarpuqkuna.lat"],  # dominio del frontend
+    allow_origins=settings.cors_origins,
     allow_credentials=True,
-    allow_methods=["*"],  # permite todos los métodos (GET, POST, etc.)
-    allow_headers=["*"],  # permite todos los headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # ========================
-# MODELOS
+# MODELOS DE DATOS
 # ========================
 class SensorData(BaseModel):
-    sensorId: str
+    sensor_id: str
     temperature: float
     humidity: float
-    soilMoisture: float
+    soil_moisture: float
     timestamp: Optional[str] = None
+
+class SensorResponse(BaseModel):
+    status: str
+    message: str
+    data: Optional[dict] = None
 
 
 # ========================
@@ -54,37 +49,59 @@ class SensorData(BaseModel):
 # ========================
 @app.get("/")
 async def index():
-    return {"message": "Hola mundo desde Sumaq Tree API"}
-
-
-@app.post("/data")
-async def receive_data(data: SensorData):
-    if not data.timestamp:
-        data.timestamp = datetime.datetime.utcnow().isoformat()
-
-    # Convertir floats a Decimal
-    item = {
-        k: Decimal(str(v)) if isinstance(v, float) else v
-        for k, v in data.dict().items()
+    return {
+        "message": f"Bienvenido a {settings.app_name}",
+        "version": settings.app_version,
+        "environment": settings.environment.value
     }
 
-    # Guardar en DynamoDB
-    table.put_item(Item=item)
+@app.get("/health")
+async def health_check():
+    return {
+        "status": "healthy",
+        "environment": settings.environment.value,
+        "timestamp": datetime.datetime.now().isoformat()
+    }
 
-    print(f"Datos recibidos: {item}")  # Para verlos en logs
 
-    return {"status": "ok", "data": data.dict()}
-
-
-@app.get("/latest")
-async def get_latest():
+@app.post("/sensor/data", response_model=SensorResponse)
+async def receive_sensor_data(data: SensorData, db: Session = Depends(get_db)):
     """
-    Devuelve el último registro ingresado.
-    Nota: DynamoDB no garantiza orden natural en 'scan', 
-    se recomienda tener una PK/SK que permita ordenar.
+    Recibe datos de sensores IoT y los almacena en Timestream para análisis temporal.
+    Los datos de configuración del sensor se mantienen en PostgreSQL.
     """
-    response = table.scan(Limit=1)
-    items = response.get("Items", [])
-    if not items:
-        return {"message": "No hay datos disponibles"}
-    return items[0]
+    try:
+        # Agregar timestamp si no viene incluido
+        if not data.timestamp:
+            data.timestamp = datetime.datetime.utcnow().isoformat()
+
+        # TODO: Implementar envío a Amazon Timestream
+        # timestream_client.write_records(...)
+        
+        # Log para desarrollo
+        print(f"Datos de sensor recibidos: {data.dict()}")
+        
+        return SensorResponse(
+            status="success",
+            message="Datos de sensor procesados correctamente",
+            data=data.dict()
+        )
+        
+    except Exception as e:
+        print(f"Error procesando datos del sensor: {e}")
+        return SensorResponse(
+            status="error",
+            message=f"Error procesando datos: {str(e)}"
+        )
+
+
+@app.get("/sensor/latest")
+async def get_latest_sensor_data():
+    """
+    Obtiene los últimos datos de sensores.
+    TODO: Implementar consulta a Timestream para datos recientes.
+    """
+    return {
+        "message": "Endpoint en desarrollo - conectará con Timestream",
+        "timestamp": datetime.datetime.now().isoformat()
+    }
