@@ -67,32 +67,116 @@ async def health_check():
 @app.post("/sensor/data", response_model=SensorResponse)
 async def receive_sensor_data(data: SensorData, db: Session = Depends(get_db)):
     """
-    Recibe datos de sensores IoT y los almacena en Timestream para análisis temporal.
-    Los datos de configuración del sensor se mantienen en PostgreSQL.
+    Recibe datos de sensores IoT y los almacena en Timestream.
+    También actualiza el estado del sensor en PostgreSQL.
     """
     try:
         # Agregar timestamp si no viene incluido
         if not data.timestamp:
-            data.timestamp = datetime.datetime.utcnow().isoformat()
+            data.timestamp = str(int(datetime.datetime.utcnow().timestamp() * 1000))
 
-        # TODO: Implementar envío a Amazon Timestream
-        # timestream_client.write_records(...)
+        # Preparar datos para Timestream
+        timestream_data = {
+            'sensor_id': data.sensor_id,
+            'timestamp': data.timestamp,
+            'measurements': {
+                'temperatura': data.temperature,
+                'humedad': data.humidity,
+                'humedad_suelo': data.soil_moisture
+            }
+        }
+        
+        # TODO: Enviar a Timestream cuando tengas credenciales AWS
+        # from .services.timestream import TimestreamService
+        # timestream_service = TimestreamService()
+        # success = timestream_service.write_sensor_data(timestream_data)
+        
+        # Actualizar última comunicación del sensor en PostgreSQL
+        from .models.database import Sensor
+        sensor = db.query(Sensor).filter(
+            Sensor.codigo_sensor == data.sensor_id
+        ).first()
+        
+        if sensor:
+            sensor.fecha_ultima_comunicacion = datetime.datetime.utcnow()
+            db.commit()
         
         # Log para desarrollo
-        print(f"Datos de sensor recibidos: {data.dict()}")
+        print(f"📊 Datos de sensor recibidos: {timestream_data}")
         
         return SensorResponse(
             status="success",
             message="Datos de sensor procesados correctamente",
-            data=data.dict()
+            data=timestream_data
         )
         
     except Exception as e:
-        print(f"Error procesando datos del sensor: {e}")
+        print(f"❌ Error procesando datos del sensor: {e}")
         return SensorResponse(
             status="error",
             message=f"Error procesando datos: {str(e)}"
         )
+
+
+@app.get("/sensor/{sensor_id}/latest")
+async def get_latest_sensor_data(sensor_id: str):
+    """
+    Obtiene la última lectura de un sensor específico desde Timestream.
+    """
+    try:
+        # TODO: Implementar consulta a Timestream
+        # timestream_service = TimestreamService()
+        # data = timestream_service.get_latest_sensor_data(sensor_id)
+        
+        return {
+            "sensor_id": sensor_id,
+            "message": "Endpoint en desarrollo - conectará con Timestream",
+            "timestamp": datetime.datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        return {
+            "error": f"Error obteniendo datos: {str(e)}"
+        }
+
+
+@app.get("/sensors/summary")
+async def get_sensors_summary(db: Session = Depends(get_db)):
+    """
+    Obtiene resumen de todos los sensores: configuración desde PostgreSQL 
+    y últimas lecturas desde Timestream.
+    """
+    try:
+        from .models.database import Sensor
+        
+        # Obtener configuración de sensores desde PostgreSQL
+        sensors_config = db.query(Sensor).filter(Sensor.estado == "activo").all()
+        
+        # TODO: Combinar con datos de Timestream
+        # timestream_service = TimestreamService()
+        # timestream_summary = timestream_service.get_all_sensors_summary()
+        
+        sensors_data = []
+        for sensor in sensors_config:
+            sensors_data.append({
+                "id": sensor.id_sensor,
+                "codigo": sensor.codigo_sensor,
+                "nombre": sensor.nombre_sensor,
+                "tipo": sensor.tipo_sensor,
+                "estado": sensor.estado,
+                "ultima_comunicacion": sensor.fecha_ultima_comunicacion.isoformat() if sensor.fecha_ultima_comunicacion else None,
+                "cultivo_id": sensor.id_cultivo
+            })
+        
+        return {
+            "total_sensores": len(sensors_data),
+            "sensores": sensors_data
+        }
+        
+    except Exception as e:
+        return {
+            "error": f"Error obteniendo resumen: {str(e)}"
+        }
 
 
 @app.get("/sensor/latest")
