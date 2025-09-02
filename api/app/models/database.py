@@ -13,7 +13,8 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 # ======================
-# MODELOS DE SQLALCHEMY
+# MODELOS DE SQLALCHEMY - Solo usuarios y configuración
+# Los datos de sensores van a Timestream
 # ======================
 
 class Organizacion(Base):
@@ -95,16 +96,20 @@ class Sensor(Base):
     
     id_sensor = Column(Integer, primary_key=True, index=True)
     codigo_sensor = Column(String(50), unique=True, nullable=False)
+    nombre_sensor = Column(String(100))
     tipo_sensor = Column(String(50), nullable=False, index=True)
     marca = Column(String(50))
     modelo = Column(String(50))
     fecha_instalacion = Column(DateTime(timezone=True), server_default=func.now())
-    fecha_ultima_lectura = Column(DateTime(timezone=True))
+    fecha_ultima_comunicacion = Column(DateTime(timezone=True))
     estado = Column(String(20), default="activo", index=True)
     id_cultivo = Column(Integer, ForeignKey("cultivos.id_cultivo"))
     coordenadas_lat = Column(Decimal(10, 8))
     coordenadas_lng = Column(Decimal(11, 8))
     configuracion = Column(JSON)
+    timestream_device_id = Column(String(100))  # ID para relacionar con Timestream
+    certificado_iot = Column(Text)  # Certificado AWS IoT Core
+    intervalo_lectura = Column(Integer, default=3600)  # segundos entre lecturas
     
     # Relaciones
     cultivo = relationship("Cultivo", back_populates="sensores")
