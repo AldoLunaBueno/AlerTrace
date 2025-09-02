@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Script simple de migraciones para SachaTrace
+Script simple de migraciones
 Ejecuta archivos SQL en orden numérico
 """
 
@@ -20,7 +20,7 @@ def get_db_connection():
             database=os.getenv('POSTGRES_DB', 'sachatrace_dev')
         )
     except Exception as e:
-        print(f"❌ Error conectando a la base de datos: {e}")
+        print(f"Error conectando a la base de datos: {e}")
         sys.exit(1)
 
 def create_migrations_table(conn):
@@ -44,7 +44,7 @@ def get_pending_migrations(applied_migrations):
     """Obtiene lista de migraciones pendientes"""
     migrations_dir = Path(__file__).parent / "migrations"
     if not migrations_dir.exists():
-        print(f"❌ Directorio de migraciones no encontrado: {migrations_dir}")
+        print(f"Directorio de migraciones no encontrado: {migrations_dir}")
         return []
     
     all_migrations = sorted([
@@ -60,10 +60,10 @@ def apply_migration(conn, migration_file):
     file_path = migrations_dir / f"{migration_file}.sql"
     
     if not file_path.exists():
-        print(f"❌ Archivo de migración no encontrado: {file_path}")
+        print(f"Archivo de migración no encontrado: {file_path}")
         return False
     
-    print(f"🔄 Aplicando migración: {migration_file}")
+    print(f"Aplicando migración: {migration_file}")
     
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
@@ -80,17 +80,15 @@ def apply_migration(conn, migration_file):
             )
         
         conn.commit()
-        print(f"✅ Migración aplicada: {migration_file}")
+        print(f"Migración aplicada: {migration_file}")
         return True
         
     except Exception as e:
         conn.rollback()
-        print(f"❌ Error aplicando migración {migration_file}: {e}")
+        print(f"Error aplicando migración {migration_file}: {e}")
         return False
 
 def main():
-    print("🚀 SachaTrace - Sistema de Migraciones")
-    print("=" * 40)
     
     # Conectar a la base de datos
     conn = get_db_connection()
@@ -103,27 +101,27 @@ def main():
     pending = get_pending_migrations(applied)
     
     if not pending:
-        print("✅ No hay migraciones pendientes")
+        print("No hay migraciones pendientes")
         return
     
-    print(f"📋 Migraciones pendientes: {len(pending)}")
+    print(f"Migraciones pendientes: {len(pending)}")
     for migration in pending:
         print(f"  - {migration}")
     
     # Confirmar aplicación
     response = input(f"\n¿Aplicar {len(pending)} migración(es)? (y/N): ")
     if response.lower() != 'y':
-        print("❌ Migración cancelada")
+        print("Migración cancelada")
         return
     
     # Aplicar migraciones
     for migration in pending:
         if not apply_migration(conn, migration):
-            print(f"❌ Deteniendo proceso por error en: {migration}")
+            print(f"Deteniendo proceso por error en: {migration}")
             break
     
     conn.close()
-    print("\n🎉 ¡Migraciones completadas!")
+    print("\n Migraciones completadas!")
 
 if __name__ == "__main__":
     main()
