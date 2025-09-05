@@ -1,10 +1,4 @@
-# ================================
-# SACHATRACE - GITIGNORE COMPLETO
-# ================================
 
-# =====================================
-# VARIABLES DE ENTORNO Y CONFIGURACIÓN
-# =====================================
 # Archivo activo (contiene secretos)
 .env
 .env.local
@@ -20,9 +14,6 @@
 .idea/workspace.xml
 .idea/tasks.xml
 
-# ================================
-# PYTHON - BACKEND API
-# ================================
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -79,13 +70,8 @@ coverage.xml
 *.mo
 *.pot
 
-# Django stuff (si usas Django en el futuro)
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
 
-# Flask stuff (si usas Flask)
+# Flask stuff
 instance/
 .webassets-cache
 
@@ -97,9 +83,6 @@ docs/_build/
 
 # PyBuilder
 target/
-
-# Jupyter Notebook
-.ipynb_checkpoints
 
 # IPython
 profile_default/
@@ -149,9 +132,6 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# ================================
-# BASE DE DATOS
-# ================================
 # Archivos de base de datos locales
 *.db
 *.sqlite
@@ -168,9 +148,6 @@ migrations.log
 # Archivos temporales de PostgreSQL
 *.psql_history
 
-# ================================
-# DOCKER Y CONTENEDORES
-# ================================
 # Archivos temporales de Docker
 .dockerignore.bak
 docker-compose.override.yml
@@ -181,9 +158,6 @@ docker-compose.override.yml
 postgres-data/
 redis-data/
 
-# ================================
-# AWS Y SERVICIOS EN LA NUBE
-# ================================
 # Credenciales de AWS
 .aws/
 aws-credentials.json
@@ -191,8 +165,7 @@ aws-credentials.json
 # Archivos de configuración de AWS SAM
 .aws-sam/
 
-# Archivos de Terraform (si usas IaC)
-*.tfstate
+# Archivos de Terraform
 *.tfstate.*
 .terraform/
 .terraform.lock.hcl
@@ -200,9 +173,6 @@ aws-credentials.json
 # CloudFormation
 *.template.yaml.bak
 
-# ================================
-# FRONTEND (REACT/VUE/ETC)
-# ================================
 # Dependencias
 node_modules/
 npm-debug.log*
@@ -227,9 +197,6 @@ dist-ssr/
 *.sln
 *.sw?
 
-# ================================
-# IOT Y SENSORES
-# ================================
 # Archivos de calibración de sensores
 sensor-calibration/
 *.calibration
@@ -248,9 +215,6 @@ device-certs/
 device-configs/
 *.device.json
 
-# ================================
-# LOGS Y MONITOREO
-# ================================
 # Logs de aplicación
 logs/
 *.log
@@ -264,9 +228,6 @@ debug/
 profile/
 *.prof
 
-# ================================
-# ARCHIVOS TEMPORALES
-# ================================
 # Archivos temporales del sistema
 .tmp/
 tmp/
@@ -289,9 +250,6 @@ temp/
 ehthumbs.db
 Thumbs.db
 
-# ================================
-# DOCUMENTACIÓN Y REPORTES
-# ================================
 # Documentación generada
 docs/build/
 *.pdf.tmp
@@ -301,9 +259,6 @@ coverage/
 coverage.xml
 htmlcov/
 
-# ================================
-# CONFIGURACIÓN DE DESARROLLO
-# ================================
 # Configuración local de scripts
 local-scripts/
 dev-tools/
@@ -312,10 +267,7 @@ dev-tools/
 .personal/
 .local-config/
 
-# ================================
-# ARCHIVOS DE PRODUCCIÓN
-# ================================
-# Secrets de producción (nunca versionar)
+# Secrets de producción
 secrets/
 *.secret
 production-config/
@@ -324,9 +276,6 @@ production-config/
 deployment-keys/
 *.deployment
 
-# ================================
-# EXCEPTIONS (ARCHIVOS A VERSIONAR)
-# ================================
 # Asegurar que estos SÍ se versionen
 !.env.development
 !.env.staging

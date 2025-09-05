@@ -1,4 +1,4 @@
--- Schema para SachaTrace - Solo datos de usuarios y configuración
+-- Schema
 -- Los datos de sensores van a Amazon Timestream
 
 -- ======================
@@ -66,7 +66,7 @@ CREATE TABLE cultivos (
 );
 
 -- ======================
--- TABLA: SENSORES (solo configuración, datos van a Timestream)
+-- TABLA: SENSORES
 -- ======================
 CREATE TABLE sensores (
     id_sensor SERIAL PRIMARY KEY,
