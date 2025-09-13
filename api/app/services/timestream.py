@@ -6,7 +6,10 @@ import boto3
 from typing import List, Dict, Optional
 from datetime import datetime, timedelta
 import json
+import logging
 from ..config import settings
+
+logger = logging.getLogger(__name__)
 
 class TimestreamService:
     def __init__(self):
@@ -95,7 +98,7 @@ class TimestreamService:
             return True
             
         except Exception as e:
-            print(f"Error escribiendo a Timestream: {str(e)}")
+            logger.error(f"Error escribiendo a Timestream: {str(e)}")
             return False
     
     def get_sensor_data(self, sensor_id: str, hours_back: int = 24) -> List[Dict]:
@@ -125,7 +128,7 @@ class TimestreamService:
             return self._parse_timestream_response(response)
             
         except Exception as e:
-            print(f"Error consultando Timestream: {str(e)}")
+            logger.error(f"Error consultando Timestream: {str(e)}")
             return []
     
     def get_latest_sensor_data(self, sensor_id: str) -> Optional[Dict]:
@@ -166,7 +169,7 @@ class TimestreamService:
             }
             
         except Exception as e:
-            print(f"Error obteniendo última lectura: {str(e)}")
+            logger.error(f"Error obteniendo última lectura: {str(e)}")
             return None
     
     def get_all_sensors_summary(self) -> List[Dict]:
@@ -189,7 +192,7 @@ class TimestreamService:
             return self._parse_timestream_response(response)
             
         except Exception as e:
-            print(f"Error obteniendo resumen de sensores: {str(e)}")
+            logger.error(f"Error obteniendo resumen de sensores: {str(e)}")
             return []
     
     def _parse_timestream_response(self, response) -> List[Dict]:

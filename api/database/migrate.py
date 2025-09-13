@@ -8,6 +8,11 @@ import os
 import psycopg2
 from pathlib import Path
 import sys
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
+logger = logging.getLogger(__name__)
 
 def get_db_connection():
     """Conecta a la base de datos usando variables de entorno"""
@@ -20,7 +25,7 @@ def get_db_connection():
             database=os.getenv('POSTGRES_DB', 'sachatrace_dev')
         )
     except Exception as e:
-        print(f"Error conectando a la base de datos: {e}")
+        logger.error(f"Error conectando a la base de datos: {e}")
         sys.exit(1)
 
 def create_migrations_table(conn):
@@ -44,7 +49,7 @@ def get_pending_migrations(applied_migrations):
     """Obtiene lista de migraciones pendientes"""
     migrations_dir = Path(__file__).parent / "migrations"
     if not migrations_dir.exists():
-        print(f"Directorio de migraciones no encontrado: {migrations_dir}")
+        logger.error(f"Directorio de migraciones no encontrado: {migrations_dir}")
         return []
     
     all_migrations = sorted([
@@ -60,10 +65,10 @@ def apply_migration(conn, migration_file):
     file_path = migrations_dir / f"{migration_file}.sql"
     
     if not file_path.exists():
-        print(f"Archivo de migración no encontrado: {file_path}")
+        logger.error(f"Archivo de migración no encontrado: {file_path}")
         return False
     
-    print(f"Aplicando migración: {migration_file}")
+    logger.info(f"Aplicando migración: {migration_file}")
     
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
@@ -80,12 +85,12 @@ def apply_migration(conn, migration_file):
             )
         
         conn.commit()
-        print(f"Migración aplicada: {migration_file}")
+        logger.info(f"Migración aplicada: {migration_file}")
         return True
         
     except Exception as e:
         conn.rollback()
-        print(f"Error aplicando migración {migration_file}: {e}")
+        logger.error(f"Error aplicando migración {migration_file}: {e}")
         return False
 
 def main():
@@ -101,27 +106,27 @@ def main():
     pending = get_pending_migrations(applied)
     
     if not pending:
-        print("No hay migraciones pendientes")
+        logger.info("No hay migraciones pendientes")
         return
     
-    print(f"Migraciones pendientes: {len(pending)}")
+    logger.info(f"Migraciones pendientes: {len(pending)}")
     for migration in pending:
-        print(f"  - {migration}")
+        logger.info(f"  - {migration}")
     
     # Confirmar aplicación
     response = input(f"\n¿Aplicar {len(pending)} migración(es)? (y/N): ")
     if response.lower() != 'y':
-        print("Migración cancelada")
+        logger.info("Migración cancelada")
         return
     
     # Aplicar migraciones
     for migration in pending:
         if not apply_migration(conn, migration):
-            print(f"Deteniendo proceso por error en: {migration}")
+            logger.error(f"Deteniendo proceso por error en: {migration}")
             break
     
     conn.close()
-    print("\n Migraciones completadas!")
+    logger.info("Migraciones completadas!")
 
 if __name__ == "__main__":
     main()
