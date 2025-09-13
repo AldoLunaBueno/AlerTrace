@@ -12,10 +12,8 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 
-# ======================
-# MODELOS DE SQLALCHEMY - Solo usuarios y configuración
+# Modelos de SQLAlchemy - Solo usuarios y configuración
 # Los datos de sensores van a Timestream
-# ======================
 
 class Organizacion(Base):
     __tablename__ = "organizaciones"
@@ -128,10 +126,7 @@ class Comprador(Base):
     # Relaciones
     usuario = relationship("Usuario", back_populates="comprador")
 
-# ======================
-# FUNCIONES DE UTILIDAD
-# ======================
-
+# Funciones de utilidad
 def get_db():
     db = SessionLocal()
     try:

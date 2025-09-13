@@ -2,7 +2,7 @@
 
 API backend para sistema IoT de monitoreo agrícola especializado en cultivos de cacao, sacha inchi y café.
 
-## 🏗️ Arquitectura
+## Arquitectura
 
 - **FastAPI**: Framework web moderno y rápido
 - **PostgreSQL**: Base de datos principal (usuarios, agricultores, sensores)
@@ -117,7 +117,7 @@ docker build -t sachatrace-api .
 docker run -p 8000:8000 --env-file .env sachatrace-api
 ```
 
-## 📊 Datos de Prueba
+## Datos de Prueba
 
 Para desarrollo local, el sistema incluye datos de ejemplo:
 - Organizaciones cooperativas

@@ -1,19 +1,14 @@
 import os
 from typing import Optional, List
 from pydantic_settings import BaseSettings
-from pydantic import validator
-from enum import Enum
-
-class Environment(str, Enum):
-    DEVELOPMENT = "development"
-    STAGING = "staging"
-    PRODUCTION = "production"
+from pydantic import field_validator
 
 class Settings(BaseSettings):
     # Configuración general
     app_name: str = "SachaTrace API"
     app_version: str = "1.0.0"
-    environment: Environment = Environment.DEVELOPMENT
+    # ENVIRONMENT solo informativo; no cambia archivos ni plantillas
+    environment: str = os.getenv("ENVIRONMENT", "default")
     debug: bool = False
     
     # Base de datos PostgreSQL (RDS)
@@ -38,7 +33,7 @@ class Settings(BaseSettings):
     jwt_access_token_expire_minutes: int = 30
     
     # CORS - será parseado desde string con comas
-    cors_origins: str = "http://localhost:3000"
+    cors_origins: List[str] = ["http://localhost:3000"]
     
     # Logging
     log_level: str = "INFO"
@@ -46,20 +41,9 @@ class Settings(BaseSettings):
     # API Keys y servicios externos
     sensor_api_key: Optional[str] = None
     
-    @validator("environment", pre=True)
-    def validate_environment(cls, v):
-        if isinstance(v, str):
-            return Environment(v.lower())
-        return v
+    # debug ahora se controla solo por la variable DEBUG en .env
     
-    @validator("debug", pre=True)
-    def set_debug(cls, v, values):
-        env = values.get("environment", Environment.DEVELOPMENT)
-        if env == Environment.DEVELOPMENT:
-            return True
-        return v
-    
-    @validator("cors_origins", pre=True)
+    @field_validator("cors_origins", mode="before")
     def parse_cors_origins(cls, v):
         if isinstance(v, str):
             return [origin.strip() for origin in v.split(",")]
