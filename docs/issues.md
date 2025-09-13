@@ -1,6 +1,6 @@
 # Issues – Backend IoT
 
-## 📅 Sprint 1 (Semana 1-2)
+## Sprint 1 (Semana 1-2)
 
 ### Backend Core
 
@@ -38,9 +38,7 @@
 
 * Descripción: Escribir definición de infraestructura como código para levantar RDS PostgreSQL. Incluir parámetros de seguridad (usuarios, contraseñas, networking). Validar conexión desde EC2.
 
----
-
-## 📅 Sprint 2 (Semana 3-4)
+## Sprint 2 (Semana 3-4)
 
 ### Backend Core
 
@@ -74,9 +72,7 @@
 
 * Descripción: Integrar escaneo de seguridad en pipeline de CI/CD. Bloquear despliegues si se encuentran vulnerabilidades críticas.
 
----
-
-## 📅 Sprint 3 (Semana 5-6)
+## Sprint 3 (Semana 5-6)
 
 ### Backend Core
 
@@ -110,9 +106,7 @@
 
 * Descripción: Ajustar IAM roles, almacenar secretos en AWS SSM/Secrets Manager. Revisar configuración para cumplimiento de buenas prácticas.
 
----
-
-## 📅 Sprint 4 (Semana 7-8)
+## Sprint 4 (Semana 7-8)
 
 ### Backend Core
 
@@ -150,9 +144,7 @@
 
 * Descripción: Documentar configuración completa de CI/CD, estrategia de despliegue, monitoreo y alertas. Incluir pasos reproducibles para nuevos integrantes.
 
----
-
-## ✅ Entregables Finales
+## Entregables Finales
 
 * API Backend en FastAPI con endpoints para: Usuarios/Organizaciones, Sensores, Métricas.
 * Base de datos en RDS PostgreSQL y Timestream integradas.
