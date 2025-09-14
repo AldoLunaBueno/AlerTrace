@@ -7,3 +7,9 @@ git clone https://github.com/AldoLunaBueno/sumaq-api.git
 git clone https://github.com/AldoLunaBueno/sumaq-front.git
 git clone https://github.com/AldoLunaBueno/sumaq-infra.git
 ```
+
+## Configuración Inicial
+
+1. Copia el archivo de configuración:
+```bash
+cp .env.example .env
