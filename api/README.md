@@ -1,155 +1,121 @@
 # SachaTrace API
 
-API backend para sistema IoT de monitoreo agrícola especializado en cultivos de cacao, sacha inchi y café.
+FastAPI backend for agricultural IoT monitoring system specialized in cocoa, sacha inchi and coffee crops.
 
-## Arquitectura
+## Architecture
 
-- **FastAPI**: Framework web moderno y rápido
-- **PostgreSQL**: Base de datos principal (usuarios, agricultores, sensores)
-- **Amazon Timestream**: Base de datos temporal para datos de sensores IoT
-- **SQLAlchemy**: ORM para manejo de base de datos
+- **FastAPI**: Modern and fast web framework
+- **AWS RDS PostgreSQL**: Main database (users, farmers, sensors)
+- **Amazon Timestream**: Time-series database for IoT sensor data
+- **SQLAlchemy**: ORM for database management
+- **Docker**: Containerized deployment
 
-## 🚀 Desarrollo Local
+## Quick Start
 
-### Prerrequisitos
+### Prerequisites
 
-```bash
-# Python 3.9+
-python --version
+- Docker and Docker Compose
+- AWS RDS PostgreSQL instance configured
+- `.env` file with AWS credentials
 
-# PostgreSQL corriendo
-psql --version
-```
+### Setup
 
-### Configuración
-
-1. **Configurar entorno:**
+1. **Configure environment variables:**
    ```bash
-   # Desde la raíz del proyecto
-   ./scripts/set_environment.sh development
+   # Create .env file in project root with:
+   POSTGRES_HOST=your-rds-endpoint.rds.amazonaws.com
+   POSTGRES_USER=postgres
+   POSTGRES_PASSWORD=your_password
+   POSTGRES_DB=postgres
+   AWS_ACCESS_KEY_ID=your_key
+   AWS_SECRET_ACCESS_KEY=your_secret
+   JWT_SECRET_KEY=your_jwt_secret
    ```
 
-2. **Instalar dependencias:**
+2. **Start the application:**
    ```bash
-   cd api
-   pip install -r requirements.txt
+   cd infra
+   ./start.sh
    ```
 
-3. **Configurar base de datos:**
-   ```bash
-   # Crear base de datos
-   createdb sachatrace_dev
-   
-   # Aplicar migraciones
-   python database/migrate.py
-   ```
+3. **Access the API:**
+   - API: http://localhost:8000
+   - Docs: http://localhost:8000/docs
+   - Health: http://localhost:8000/health
 
-4. **Ejecutar API:**
-   ```bash
-   uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-   ```
-
-## 📁 Estructura del Proyecto
+## Project Structure
 
 ```
 api/
 ├── app/
-│   ├── config.py           # Configuración centralizada
-│   ├── main.py            # Aplicación FastAPI principal
-│   ├── models/            # Modelos de SQLAlchemy
-│   │   └── database.py    # Definiciones de tablas
-│   └── routers/           # Endpoints organizados por módulo
+│   ├── config.py           # Configuration management
+│   ├── main.py            # FastAPI main application
+│   ├── models/            # SQLAlchemy models
+│   │   └── database.py    # Database definitions
+│   └── services/          # Business logic
+│       └── timestream.py  # AWS Timestream integration
 ├── database/
-│   ├── migrate.py         # Script de migraciones
-│   └── migrations/        # Archivos SQL de migración
-│       └── 001_init.sql   # Schema inicial
-├── Dockerfile             # Imagen de contenedor
-└── requirements.txt       # Dependencias Python
+│   ├── migrate.py         # Migration script
+│   └── migrations/        # SQL migration files
+│       └── 001_init.sql   # Initial schema
+├── Dockerfile             # Container image
+└── requirements.txt       # Python dependencies
 ```
 
-## 🔧 API Endpoints
+## API Endpoints
 
-### Endpoints Principales
+### Core Endpoints
 
-- `GET /` - Información de la API
-- `GET /health` - Estado de salud de la API
-- `POST /sensor/data` - Recibir datos de sensores IoT
-- `GET /sensor/latest` - Obtener últimos datos de sensores
+- `GET /` - API information
+- `GET /health` - Health check
+- `POST /sensor/data` - Receive IoT sensor data
+- `GET /sensor/latest` - Get latest sensor readings
 
-### Documentación Automática
+### Documentation
 
 - **Swagger UI**: http://localhost:8000/docs
 - **ReDoc**: http://localhost:8000/redoc
 
-## 🌍 Entornos
+## Environment Variables
 
-| Entorno | Base de Datos | Debug | Descripción |
-|---------|---------------|-------|-------------|
-| development | Local PostgreSQL | ✅ | Desarrollo local |
-| staging | Staging DB | ❌ | Testing pre-producción |
-| production | AWS RDS | ❌ | Producción |
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `POSTGRES_HOST` | RDS endpoint | `your-db.rds.amazonaws.com` |
+| `POSTGRES_USER` | Database user | `postgres` |
+| `POSTGRES_PASSWORD` | Database password | `your_password` |
+| `POSTGRES_DB` | Database name | `postgres` |
+| `AWS_ACCESS_KEY_ID` | AWS access key | `AKIA...` |
+| `AWS_SECRET_ACCESS_KEY` | AWS secret key | `your_secret` |
+| `JWT_SECRET_KEY` | JWT signing key | `your_jwt_secret` |
+| `TIMESTREAM_DATABASE` | Timestream DB name | `SensorData` |
+| `TIMESTREAM_TABLE` | Timestream table | `Measurements` |
 
+## Deployment
+
+The application runs in Docker containers connecting to AWS services:
+- **API**: FastAPI in Docker container
+- **Database**: AWS RDS PostgreSQL
+- **Time-series data**: Amazon Timestream
+- **Cache**: Redis (local container)
+
+## Development
+
+### Logs
 ```bash
-# Cambiar entre entornos
-./scripts/set_environment.sh [development|staging|production]
+docker-compose logs -f api
 ```
 
-## 🔒 Variables de Entorno
-
-Ver archivos `.env.development`, `.env.staging`, `.env.production` para configuraciones específicas.
-
-### Variables Principales
-
+### Database migrations
 ```bash
-POSTGRES_HOST=localhost
-POSTGRES_DB=sachatrace_dev
-TIMESTREAM_DATABASE=SensorDataDev
-JWT_SECRET_KEY=tu-clave-secreta
+python database/migrate.py
 ```
 
-## 🐳 Docker
-
+### Stop services
 ```bash
-# Construir imagen
-docker build -t sachatrace-api .
-
-# Ejecutar contenedor
-docker run -p 8000:8000 --env-file .env sachatrace-api
+docker-compose down
 ```
-
-## Datos de Prueba
-
-Para desarrollo local, el sistema incluye datos de ejemplo:
-- Organizaciones cooperativas
-- Usuario administrador
-- Estructura base de agricultores y sensores
-
-## 🧪 Testing
-
-```bash
-# Ejecutar tests (cuando se implementen)
-pytest
-
-# Coverage
-pytest --cov=app
-```
-
-## 📝 Logging
-
-Los logs se configuran según el entorno:
-- **Development**: DEBUG level, salida a consola
-- **Staging**: INFO level
-- **Production**: WARNING level
-
-## 🚀 Deployment
-
-El deployment se realiza usando:
-- **Docker containers** en AWS ECS/Fargate
-- **AWS RDS** para PostgreSQL
-- **Amazon Timestream** para datos de sensores
-- **Application Load Balancer** para tráfico HTTP
 
 ---
 
-**Versión**: 1.0.0  
-**Licencia**: Propietaria - SachaTrace Project
+**Version**: 1.0.0  
+**License**: Proprietary - SachaTrace Project
