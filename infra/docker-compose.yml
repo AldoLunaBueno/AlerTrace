@@ -2,11 +2,11 @@ services:
   # Base de datos PostgreSQL
   postgres:
     image: postgres:15-alpine
-    container_name: sachatrace_postgres
+    container_name: mallkitrace_postgres
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: sachatrace_dev
+      POSTGRES_DB: postgres
     ports:
       - "5432:5432"
     volumes:
@@ -21,7 +21,7 @@ services:
   # Redis para caché y sesiones
   redis:
     image: redis:7-alpine
-    container_name: sachatrace_redis
+    container_name: mallkitrace_redis
     ports:
       - "6379:6379"
     command: redis-server --appendonly yes
@@ -33,13 +33,13 @@ services:
     build: 
       context: ../api
       dockerfile: Dockerfile
-    container_name: sachatrace_api
+    container_name: mallkitrace_api
     environment:
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: sachatrace_dev
+      POSTGRES_DB: mallkitrace_dev
       ENVIRONMENT: development
       DEBUG: true
       LOG_LEVEL: INFO

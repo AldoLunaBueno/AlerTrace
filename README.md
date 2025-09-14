@@ -1,6 +1,6 @@
-# SachaTrace
+# MallkiTrace
 
-SachaTrace es una plataforma integral para el monitoreo agrícola e industrial. Integra sensores que envían datos vía HTTP, una API para procesar la información en tiempo real y una interfaz web para visualizar y analizar los resultados.
+MallkiTrace es una plataforma integral para el monitoreo agrícola e industrial. Integra sensores que envían datos vía HTTP, una API para procesar la información en tiempo real y una interfaz web para visualizar y analizar los resultados.
 
 ## Estructura del repositorio
 

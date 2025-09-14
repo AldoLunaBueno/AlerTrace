@@ -46,7 +46,7 @@ jobs:
 
     # Sube el artefacto generado
       - name: Synchronize files to S3 dev
-        run: aws s3 sync front/dist/ s3://sachatrace-dev-front --delete
+        run: aws s3 sync front/dist/ s3://mallkitrace-dev-front --delete
 
     # Invalidar caché de CloudFront para un despliegue inmediato
       - name: Invalidate CloudFront cache

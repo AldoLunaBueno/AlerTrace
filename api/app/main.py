@@ -51,7 +51,7 @@ class HealthCheck(BaseModel):
 @app.get("/")
 async def root():
     return {
-        "message": "SachaTrace API - Sistema de Trazabilidad Agrícola",
+        "message": "MallkiTrace API - Sistema de Trazabilidad Agrícola",
         "version": settings.app_version,
         "environment": settings.environment,
         "status": "operational"

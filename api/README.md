@@ -1,4 +1,4 @@
-# SachaTrace API
+# MallkiTrace API
 
 FastAPI backend for agricultural IoT monitoring system specialized in cocoa, sacha inchi and coffee crops.
 
@@ -118,4 +118,4 @@ docker-compose down
 ---
 
 **Version**: 1.0.0  
-**License**: Proprietary - SachaTrace Project
+**License**: Proprietary - MallkiTrace Project

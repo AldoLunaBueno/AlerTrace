@@ -22,7 +22,7 @@ def get_db_connection():
             port=os.getenv('POSTGRES_PORT', '5432'),
             user=os.getenv('POSTGRES_USER', 'postgres'),
             password=os.getenv('POSTGRES_PASSWORD', ''),
-            database=os.getenv('POSTGRES_DB', 'sachatrace_dev')
+            database=os.getenv('POSTGRES_DB', 'mallkitrace_dev')
         )
     except Exception as e:
         logger.error(f"Error conectando a la base de datos: {e}")

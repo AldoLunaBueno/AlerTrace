@@ -5,7 +5,7 @@ from pydantic import field_validator
 
 class Settings(BaseSettings):
     # Configuración general
-    app_name: str = "SachaTrace API"
+    app_name: str = "MallkiTrace API"
     app_version: str = "1.0.0"
     # ENVIRONMENT solo informativo; no cambia archivos ni plantillas
     environment: str = os.getenv("ENVIRONMENT", "default")
@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     postgres_port: int = 5432
     postgres_user: str = "postgres"
     postgres_password: str = ""
-    postgres_db: str = "sachatrace"
+    postgres_db: str = "postgres"
     
     # Amazon Timestream (para datos de sensores)
     aws_region: str = "us-east-1"
