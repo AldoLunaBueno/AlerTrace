@@ -1,10 +1,11 @@
-from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime, Decimal, Text, ARRAY, JSON
+from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime, Decimal, Float, Text, ARRAY, JSON
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.sql import func
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship
 from ..config import settings
+import datetime
 
 # Configuración de la base de datos
 engine = create_engine(settings.postgres_url)
@@ -95,7 +96,6 @@ class Sensor(Base):
     id_sensor = Column(Integer, primary_key=True, index=True)
     codigo_sensor = Column(String(50), unique=True, nullable=False)
     nombre_sensor = Column(String(100))
-    tipo_sensor = Column(String(50), nullable=False, index=True)
     marca = Column(String(50))
     modelo = Column(String(50))
     fecha_instalacion = Column(DateTime(timezone=True), server_default=func.now())
@@ -105,12 +105,27 @@ class Sensor(Base):
     coordenadas_lat = Column(Decimal(10, 8))
     coordenadas_lng = Column(Decimal(11, 8))
     configuracion = Column(JSON)
-    timestream_device_id = Column(String(100))  # ID para relacionar con Timestream
     certificado_iot = Column(Text)  # Certificado AWS IoT Core
     intervalo_lectura = Column(Integer, default=3600)  # segundos entre lecturas
     
     # Relaciones
     cultivo = relationship("Cultivo", back_populates="sensores")
+    metricas = relationship("SensorMetrica", back_populates="sensor")
+
+class SensorMetrica(Base):
+    __tablename__ = "sensor_metricas"
+    
+    id_sensor = Column(Integer, ForeignKey("sensores.id_sensor"), primary_key=True)
+    timestamp = Column(DateTime(timezone=True), primary_key=True, index=True, server_default=func.now())
+    temperature = Column(Float)
+    humidity = Column(Float)
+    soil_moisture = Column(Float)
+    light = Column(Float)
+    ph_level = Column(Float)
+    
+    # Relaciones
+    sensor = relationship("Sensor", back_populates="metricas")
+    
 
 class Comprador(Base):
     __tablename__ = "compradores"
