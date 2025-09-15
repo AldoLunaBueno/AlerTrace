@@ -27,5 +27,10 @@ fi
 echo "Iniciando API con Docker conectando a AWS RDS..."
 echo "Construyendo y levantando servicios..."
 
-# Solo levantar Redis y API (sin PostgreSQL local)
-docker-compose up --build redis api
+# Limpieza previa de los servicios
+echo "Limpiando servicios y dependencias"
+docker compose down -v
+
+# Levantar todos los servicios
+echo "Iniciando servicios"
+docker compose up --build
