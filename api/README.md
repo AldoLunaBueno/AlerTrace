@@ -1,13 +1,13 @@
-# MallkiTrace API
+# SachaTrace API
 
-FastAPI backend for agricultural IoT monitoring system specialized in cocoa, sacha inchi and coffee crops.
+FastAPI backend for agricultural monitoring system specialized in cocoa, sacha inchi and coffee crops.
 
-## Architecture
+## Architecture Simplified
 
 - **FastAPI**: Modern and fast web framework
-- **AWS RDS PostgreSQL**: Main database (users, farmers, sensors)
-- **Amazon Timestream**: Time-series database for IoT sensor data
+- **PostgreSQL**: Single database for all data (users, crops)
 - **SQLAlchemy**: ORM for database management
+- **JWT Authentication**: Secure user authentication
 - **Docker**: Containerized deployment
 
 ## Quick Start
@@ -15,20 +15,71 @@ FastAPI backend for agricultural IoT monitoring system specialized in cocoa, sac
 ### Prerequisites
 
 - Docker and Docker Compose
-- AWS RDS PostgreSQL instance configured
-- `.env` file with AWS credentials
+- PostgreSQL database configured
 
 ### Setup
 
-1. **Configure environment variables:**
+1. **Start services with Docker Compose:**
    ```bash
-   # Create .env file in project root with:
-   POSTGRES_HOST=your-rds-endpoint.rds.amazonaws.com
-   POSTGRES_USER=postgres
-   POSTGRES_PASSWORD=your_password
-   POSTGRES_DB=postgres
-   AWS_ACCESS_KEY_ID=your_key
-   AWS_SECRET_ACCESS_KEY=your_secret
+   cd infra/
+   docker-compose up -d
+   ```
+
+2. **Initialize database:**
+   ```bash
+   ./init-simple-db.sh
+   ```
+
+3. **Test the API:**
+   ```bash
+   curl http://localhost:8000
+   ```
+
+### Login Test
+
+```bash
+# Login
+curl -X POST "http://localhost:8000/api/v1/auth/login" \
+     -H "Content-Type: application/json" \
+     -d '{"username":"admin","password":"secret"}'
+
+# Get user info (replace TOKEN with the returned access_token)
+curl -X GET "http://localhost:8000/api/v1/auth/me" \
+     -H "Authorization: Bearer TOKEN"
+```
+
+## Database Structure
+
+### Tables
+
+**usuarios** - User accounts
+- `id_usuario` (PK)
+- `username` (unique)
+- `nombre`
+- `email` (unique)
+- `password_hash`
+- `rol` (admin, agricultor, comprador)
+- `activo`
+- `fecha_registro`
+
+**cultivos** - Crops information
+- `id_cultivo` (PK)
+- `id_usuario` (FK → usuarios)
+- `tipo_cultivo`
+- `variedad`
+- `hectareas`
+- `fecha_siembra`
+- `fecha_estimada_cosecha`
+- `estado`
+- `ubicacion_especifica`
+- `coordenadas_lat`
+- `coordenadas_lng`
+
+### Test Users
+
+- **admin** / secret (Administrator)
+- **agricultor1** / secret (Farmer with 2 crops)
+- **comprador1** / secret (Buyer)
    JWT_SECRET_KEY=your_jwt_secret
    ```
 
