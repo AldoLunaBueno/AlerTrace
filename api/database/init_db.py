@@ -102,10 +102,10 @@ def init_database():
             cur.execute(INIT_SQL)
         
         conn.commit()
-        logger.info("✅ Base de datos inicializada correctamente")
+        logger.info("Base de datos inicializada correctamente")
         
     except Exception as e:
-        logger.error(f"❌ Error inicializando base de datos: {e}")
+        logger.error(f"Error inicializando base de datos: {e}")
         conn.rollback()
         sys.exit(1)
     finally:
