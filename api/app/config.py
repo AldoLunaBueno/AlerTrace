@@ -6,37 +6,35 @@ from pydantic import field_validator
 class Settings(BaseSettings):
     """Configuración de la aplicación utilizando variables de entorno"""
     # Configuración general
-    app_name: str = "MallkiTrace API"
+    app_name: str = "SachaTrace API"
     app_version: str = "1.0.0"
-    environment: str = os.getenv("ENVIRONMENT", "default")
+    environment: str = "production"
     debug: bool = False
+    log_level: str = "INFO"
     
-    # Base de datos PostgreSQL
-    postgres_host: str = "localhost"
-    postgres_port: int = 5432
-    postgres_user: str = "postgres"
-    postgres_password: str = ""
-    postgres_db: str = "postgres"
+    # Base de datos PostgreSQL - Solo las que necesitamos
+    postgres_host: str
+    postgres_port: int
+    postgres_user: str
+    postgres_password: str
+    postgres_db: str
     
-    # JWT Configuration
-    jwt_secret_key: str = "your-secret-key-change-in-production"
+    # JWT Configuration - Solo las que necesitamos
+    jwt_secret_key: str
     jwt_algorithm: str = "HS256"
     jwt_access_token_expire_minutes: int = 30
     
-    # Logging
-    log_level: str = "INFO"
-    
-    # API Keys y servicios externos
-    sensor_api_key: Optional[str] = None
-    
     @property
-    def postgres_url(self) -> str:
-        """Genera la URL de conexión a PostgreSQL"""
+    def database_url(self) -> str:
+        """Construye la URL de conexión a AWS RDS PostgreSQL"""
         return f"postgresql://{self.postgres_user}:{self.postgres_password}@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
     
-    class Config:
-        env_file = ".env"
-        case_sensitive = False
+    model_config = {
+        "env_file": ".env.minimal",
+        "env_file_encoding": "utf-8",
+        "case_sensitive": False,
+        "extra": "ignore"  # Ignorar variables extra del .env
+    }
 
 def get_settings() -> Settings:
     """Factory function para obtener la configuración de la aplicación"""
