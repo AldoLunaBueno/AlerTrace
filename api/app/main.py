@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import time
 
 # Importar los routers modulares
-from .routes.auth import router as auth_router
+from app.routes import auth, cultivos, admin, dashboard, sensores
 from .routes.cultivos import router as cultivos_router
 from .routes.admin import router as admin_router
 from .routes.dashboard import router as dashboard_router
@@ -27,11 +27,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Incluir todos los routers
-app.include_router(auth_router)
-app.include_router(cultivos_router)
-app.include_router(admin_router)
-app.include_router(dashboard_router)
+# Incluir routers
+app.include_router(auth.router)
+app.include_router(cultivos.router)
+app.include_router(admin.router)
+app.include_router(dashboard.router)
+app.include_router(sensores.router)
 
 
 @app.get("/", tags=["Sistema"])
