@@ -18,10 +18,125 @@ class HealthCheck(BaseModel):
 class SensorData(BaseModel):
     """Modelo para datos recibidos de sensores IoT"""
     sensor_id: str
-    temperature: Optional[float] = None
-    humidity: Optional[float] = None
-    soil_moisture: Optional[float] = None
+    temperatura: Optional[float] = None  # Temperatura del ambiente (°C)
+    humedad_aire: Optional[float] = None  # Humedad del ambiente (%)
+    humedad_suelo: Optional[float] = None  # Humedad del suelo (%)
+    ph_suelo: Optional[float] = None  # pH del suelo
+    radiacion_solar: Optional[float] = None  # Radiación solar (W/m²)
     timestamp: Optional[str] = None
+
+
+class SensorCreate(BaseModel):
+    """Modelo para registrar un nuevo sensor"""
+    sensor_id: str
+    nombre: str
+    tipo: str
+    id_cultivo: int
+    ubicacion_sensor: Optional[str] = None
+    coordenadas_lat: Optional[float] = None
+    coordenadas_lng: Optional[float] = None
+    intervalo_lectura: Optional[int] = 300
+
+
+class SensorUpdate(BaseModel):
+    """Modelo para actualizar configuración de sensor"""
+    nombre: Optional[str] = None
+    activo: Optional[bool] = None
+    intervalo_lectura: Optional[int] = None
+    ubicacion_sensor: Optional[str] = None
+    coordenadas_lat: Optional[float] = None
+    coordenadas_lng: Optional[float] = None
+
+
+class SensorResponse(BaseModel):
+    """Modelo para respuesta de sensor"""
+    model_config = ConfigDict(from_attributes=True)
+    
+    id_sensor: int
+    sensor_id: str
+    nombre: str
+    tipo: str
+    id_cultivo: int
+    activo: bool
+    intervalo_lectura: int
+    ultima_lectura: Optional[datetime] = None
+    bateria_nivel: Optional[int] = None
+    ubicacion_sensor: Optional[str] = None
+    coordenadas_lat: Optional[float] = None
+    coordenadas_lng: Optional[float] = None
+    fecha_instalacion: datetime
+
+
+class LecturaSensorResponse(BaseModel):
+    """Modelo para respuesta de lectura de sensor"""
+    model_config = ConfigDict(from_attributes=True)
+    
+    id_lectura: int
+    id_sensor: int
+    timestamp: datetime
+    temperatura: Optional[float] = None  # Temperatura del ambiente (°C)
+    humedad_aire: Optional[float] = None  # Humedad del ambiente (%)
+    humedad_suelo: Optional[float] = None  # Humedad del suelo (%)
+    ph_suelo: Optional[float] = None  # pH del suelo
+    radiacion_solar: Optional[float] = None  # Radiación solar (W/m²)
+
+
+class AlertaResponse(BaseModel):
+    """Modelo para respuesta de alerta"""
+    model_config = ConfigDict(from_attributes=True)
+    
+    id_alerta: int
+    id_sensor: int
+    tipo_alerta: str
+    severidad: str
+    titulo: str
+    mensaje: str
+    valor_actual: Optional[float] = None
+    valor_umbral: Optional[float] = None
+    resuelta: bool
+    fecha_creacion: datetime
+
+
+class ConfiguracionUmbralCreate(BaseModel):
+    """Modelo para crear configuración de umbrales"""
+    id_cultivo: int
+    temp_min: Optional[float] = 10.0  # °C
+    temp_max: Optional[float] = 35.0  # °C
+    humedad_aire_min: Optional[float] = 40.0  # %
+    humedad_aire_max: Optional[float] = 90.0  # %
+    humedad_suelo_min: Optional[float] = 30.0  # %
+    humedad_suelo_max: Optional[float] = 80.0  # %
+    ph_min: Optional[float] = 6.0
+    ph_max: Optional[float] = 7.5
+    radiacion_min: Optional[float] = 200.0  # W/m²
+    radiacion_max: Optional[float] = 1000.0  # W/m²
+
+
+class ConfiguracionUmbralResponse(BaseModel):
+    """Modelo para respuesta de configuración de umbrales"""
+    model_config = ConfigDict(from_attributes=True)
+    
+    id_configuracion: int
+    id_cultivo: int
+    temp_min: float  # °C
+    temp_max: float  # °C
+    humedad_aire_min: float  # %
+    humedad_aire_max: float  # %
+    humedad_suelo_min: float  # %
+    humedad_suelo_max: float  # %
+    ph_min: float
+    ph_max: float
+    radiacion_min: float  # W/m²
+    radiacion_max: float  # W/m²
+    activo: bool
+    fecha_creacion: datetime
+
+
+class DashboardResponse(BaseModel):
+    """Modelo para respuesta del dashboard"""
+    total_cultivos: int
+    cultivos_activos: int
+    alertas_pendientes: int
 
 
 # Modelos de autenticación
