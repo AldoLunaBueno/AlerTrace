@@ -1,4 +1,4 @@
-"""Rutas para gestión de sensores IoT"""
+"""IoT sensor management routes"""
 
 from datetime import datetime, timedelta
 from typing import List, Optional
@@ -22,21 +22,21 @@ router = APIRouter(prefix="/sensores", tags=["sensores"])
 
 
 @router.post("/data", status_code=status.HTTP_201_CREATED)
-async def recibir_datos_sensor(
+async def receive_sensor_data(
     sensor_data: SensorData,
     db: Session = Depends(get_db)
 ):
-    """Recibe datos de sensores IoT - Endpoint público para dispositivos"""
+    """Receive IoT sensor data - Public endpoint for devices"""
     # Verificar que el sensor existe
     sensor = db.query(Sensor).filter(
-        Sensor.sensor_id == sensor_data.sensor_id,
+        Sensor.device_id == sensor_data.device_id,
         Sensor.activo == True
     ).first()
     
     if not sensor:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Sensor {sensor_data.sensor_id} no encontrado o inactivo"
+            detail=f"Sensor {sensor_data.device_id} no encontrado o inactivo"
         )
     
     # Crear nueva lectura con los 5 parámetros específicos
@@ -60,20 +60,20 @@ async def recibir_datos_sensor(
     # Verificar umbrales y generar alertas
     await _verificar_umbrales(db, sensor, nueva_lectura)
     
-    return {"message": "Datos recibidos correctamente", "sensor": sensor_data.sensor_id}
+    return {"message": "Datos recibidos correctamente", "sensor": sensor_data.device_id}
 
 
 @router.post("/", response_model=SensorResponse)
-async def crear_sensor(
+async def create_sensor(
     sensor_data: SensorCreate,
-    usuario = Depends(get_current_user),
+    user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Registrar un nuevo sensor"""
-    # Verificar que el cultivo existe y pertenece al usuario
+    """Register new IoT sensor"""
+    # Verify crop exists and belongs to user
     cultivo = db.query(Cultivo).filter(
         Cultivo.id_cultivo == sensor_data.id_cultivo,
-        Cultivo.id_usuario == usuario.id_usuario
+        Cultivo.id_usuario == user.id_usuario
     ).first()
     
     if not cultivo:
@@ -82,23 +82,24 @@ async def crear_sensor(
             detail="Cultivo no encontrado"
         )
     
-    # Verificar que el sensor_id no existe
+    # Verificar que el device_id no existe
     sensor_existente = db.query(Sensor).filter(
-        Sensor.sensor_id == sensor_data.sensor_id
+        Sensor.device_id == sensor_data.device_id
     ).first()
     
     if sensor_existente:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="El ID de sensor ya existe"
+            detail="El ID de dispositivo ya existe"
         )
     
     # Crear nuevo sensor
     nuevo_sensor = Sensor(
-        sensor_id=sensor_data.sensor_id,
+        device_id=sensor_data.device_id,
         nombre=sensor_data.nombre,
         tipo=sensor_data.tipo,
         id_cultivo=sensor_data.id_cultivo,
+        id_usuario=user.id_usuario,
         ubicacion_sensor=sensor_data.ubicacion_sensor,
         coordenadas_lat=sensor_data.coordenadas_lat,
         coordenadas_lng=sensor_data.coordenadas_lng,
