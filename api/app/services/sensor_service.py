@@ -1,4 +1,4 @@
-"""Servicio para gestión de sensores IoT"""
+"""IoT sensor management service"""
 
 from datetime import datetime, timedelta
 from typing import List, Optional, Dict, Any
@@ -11,67 +11,62 @@ from app.models.database import (
 
 
 class SensorService:
-    """Servicio para operaciones con sensores"""
+    """IoT sensor operations and analytics"""
     
     @staticmethod
-    def obtener_estadisticas_sensores(db: Session, id_usuario: int) -> Dict[str, Any]:
-        """Obtener estadísticas generales de sensores del usuario"""
-        # Total de sensores
-        total_sensores = db.query(Sensor).join(Cultivo).filter(
-            Cultivo.id_usuario == id_usuario
+    def get_stats(db: Session, user_id: int) -> Dict[str, Any]:
+        """Get user sensor statistics"""
+        total_sensors = db.query(Sensor).join(Cultivo).filter(
+            Cultivo.id_usuario == user_id
         ).count()
         
-        # Sensores activos
-        sensores_activos = db.query(Sensor).join(Cultivo).filter(
-            Cultivo.id_usuario == id_usuario,
+        active_sensors = db.query(Sensor).join(Cultivo).filter(
+            Cultivo.id_usuario == user_id,
             Sensor.activo == True
         ).count()
         
-        # Sensores offline (sin lectura en las últimas 2 horas)
-        hace_2_horas = datetime.utcnow() - timedelta(hours=2)
-        sensores_offline = db.query(Sensor).join(Cultivo).filter(
-            Cultivo.id_usuario == id_usuario,
+        # Offline sensors (no reading in last 2 hours)
+        two_hours_ago = datetime.utcnow() - timedelta(hours=2)
+        offline_sensors = db.query(Sensor).join(Cultivo).filter(
+            Cultivo.id_usuario == user_id,
             Sensor.activo == True,
             or_(
-                Sensor.ultima_lectura < hace_2_horas,
+                Sensor.ultima_lectura < two_hours_ago,
                 Sensor.ultima_lectura.is_(None)
             )
         ).count()
         
-        # Alertas activas
-        alertas_activas = db.query(Alerta).join(Sensor).join(Cultivo).filter(
-            Cultivo.id_usuario == id_usuario,
+        active_alerts = db.query(Alerta).join(Sensor).join(Cultivo).filter(
+            Cultivo.id_usuario == user_id,
             Alerta.resuelta == False
         ).count()
         
-        # Lecturas hoy
-        hoy = datetime.utcnow().date()
-        lecturas_hoy = db.query(LecturaSensor).join(Sensor).join(Cultivo).filter(
-            Cultivo.id_usuario == id_usuario,
-            func.date(LecturaSensor.timestamp) == hoy
+        today = datetime.utcnow().date()
+        today_readings = db.query(LecturaSensor).join(Sensor).join(Cultivo).filter(
+            Cultivo.id_usuario == user_id,
+            func.date(LecturaSensor.timestamp) == today
         ).count()
         
         return {
-            "total_sensores": total_sensores,
-            "sensores_activos": sensores_activos,
-            "sensores_inactivos": total_sensores - sensores_activos,
-            "sensores_offline": sensores_offline,
-            "alertas_activas": alertas_activas,
-            "lecturas_hoy": lecturas_hoy
+            "total_sensores": total_sensors,
+            "sensores_activos": active_sensors,
+            "sensores_inactivos": total_sensors - active_sensors,
+            "sensores_offline": offline_sensors,
+            "alertas_activas": active_alerts,
+            "lecturas_hoy": today_readings
         }
     
     @staticmethod
-    def obtener_datos_dashboard(
+    def get_dashboard_data(
         db: Session, 
-        id_usuario: int, 
-        horas: int = 24
+        user_id: int, 
+        hours: int = 24
     ) -> Dict[str, Any]:
-        """Obtener datos para dashboard de sensores"""
-        fecha_desde = datetime.utcnow() - timedelta(hours=horas)
+        """Get sensor dashboard data"""
+        fecha_desde = datetime.utcnow() - timedelta(hours=hours)
         
-        # Obtener sensores del usuario
         sensores = db.query(Sensor).join(Cultivo).filter(
-            Cultivo.id_usuario == id_usuario,
+            Cultivo.id_usuario == user_id,
             Sensor.activo == True
         ).all()
         
@@ -113,7 +108,7 @@ class SensorService:
             datos_sensores.append({
                 "sensor": {
                     "id_sensor": sensor.id_sensor,
-                    "sensor_id": sensor.sensor_id,
+                    "device_id": sensor.device_id,
                     "nombre": sensor.nombre,
                     "tipo": sensor.tipo,
                     "ubicacion": sensor.ubicacion_sensor,
@@ -139,7 +134,7 @@ class SensorService:
         
         return {
             "sensores": datos_sensores,
-            "resumen": SensorService.obtener_estadisticas_sensores(db, id_usuario)
+            "resumen": SensorService.get_stats(db, user_id)
         }
     
     @staticmethod
@@ -164,7 +159,7 @@ class SensorService:
             func.avg(LecturaSensor.humedad_aire).label('humedad_aire_promedio'),
             func.avg(LecturaSensor.humedad_suelo).label('humedad_suelo_promedio'),
             func.avg(LecturaSensor.ph_suelo).label('ph_promedio'),
-            func.avg(LecturaSensor.luz_solar).label('luz_solar_promedio'),
+            func.avg(LecturaSensor.radiacion_solar).label('radiacion_solar_promedio'),
             func.count(LecturaSensor.id_lectura).label('total_lecturas')
         ).filter(
             LecturaSensor.id_sensor == id_sensor,
@@ -186,7 +181,7 @@ class SensorService:
                 "humedad_aire": float(lectura.humedad_aire_promedio) if lectura.humedad_aire_promedio else None,
                 "humedad_suelo": float(lectura.humedad_suelo_promedio) if lectura.humedad_suelo_promedio else None,
                 "ph_suelo": float(lectura.ph_promedio) if lectura.ph_promedio else None,
-                "luz_solar": float(lectura.luz_solar_promedio) if lectura.luz_solar_promedio else None,
+                "radiacion_solar": float(lectura.radiacion_solar_promedio) if lectura.radiacion_solar_promedio else None,
                 "total_lecturas": lectura.total_lecturas
             })
         
@@ -240,7 +235,7 @@ class SensorService:
         return {
             "sensor": {
                 "id_sensor": sensor.id_sensor,
-                "sensor_id": sensor.sensor_id,
+                "device_id": sensor.device_id,
                 "nombre": sensor.nombre,
                 "tipo": sensor.tipo,
                 "ubicacion": sensor.ubicacion_sensor,
@@ -289,16 +284,16 @@ class SensorService:
         }
     
     @staticmethod
-    def validar_conectividad_sensor(db: Session, sensor_id: str) -> Dict[str, Any]:
+    def validar_conectividad_sensor(db: Session, device_id: str) -> Dict[str, Any]:
         """Validar estado de conectividad de un sensor"""
         sensor = db.query(Sensor).filter(
-            Sensor.sensor_id == sensor_id,
+            Sensor.device_id == device_id,
             Sensor.activo == True
         ).first()
         
         if not sensor:
             return {
-                "sensor_id": sensor_id,
+                "device_id": device_id,
                 "estado": "no_encontrado",
                 "mensaje": "Sensor no encontrado o inactivo"
             }
@@ -310,7 +305,7 @@ class SensorService:
         
         if not ultima_lectura:
             return {
-                "sensor_id": sensor_id,
+                "device_id": device_id,
                 "estado": "sin_datos",
                 "mensaje": "Sensor sin lecturas registradas",
                 "sensor": {
@@ -336,7 +331,7 @@ class SensorService:
             mensaje = f"Offline desde hace {int(horas_offline)} horas"
         
         return {
-            "sensor_id": sensor_id,
+            "device_id": device_id,
             "estado": estado,
             "mensaje": mensaje,
             "sensor": {
