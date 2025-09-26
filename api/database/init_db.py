@@ -1,115 +1,161 @@
 #!/usr/bin/env python3
 """
-Script de inicialización de base de datos para MallkiTrace
-Crea la estructura de tablas y datos de prueba
+Database initialization for SachaTrace IoT system.
+Creates tables, migrates sensor_id → device_id, adds sample data.
 """
 
 import os
-import psycopg2
 import sys
 import logging
+from sqlalchemy import text, inspect
 
-# Configure logging
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from app.models.database import engine, SessionLocal, Base
+from app.models.database import Usuario, Cultivo, Sensor
+from app.config import settings
+
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 logger = logging.getLogger(__name__)
 
-def get_db_connection():
-    """Establece conexión con PostgreSQL usando variables de entorno"""
+def migrate_columns():
+    """Migrate sensor_id → device_id if needed"""
     try:
-        return psycopg2.connect(
-            host=os.getenv('POSTGRES_HOST', 'localhost'),
-            port=os.getenv('POSTGRES_PORT', '5432'),
-            user=os.getenv('POSTGRES_USER', 'postgres'),
-            password=os.getenv('POSTGRES_PASSWORD', ''),
-            database=os.getenv('POSTGRES_DB', 'mallkitrace_dev')
-        )
-    except Exception as e:
-        logger.error(f"Error conectando a la base de datos: {e}")
-        sys.exit(1)
-
-# SQL para crear la estructura de base de datos
-INIT_SQL = """
--- Eliminar tablas existentes para recrear estructura
-DROP TABLE IF EXISTS sensor_metricas CASCADE;
-DROP TABLE IF EXISTS sensores CASCADE;
-DROP TABLE IF EXISTS compradores CASCADE;
-DROP TABLE IF EXISTS agricultores CASCADE;
-DROP TABLE IF EXISTS cultivos CASCADE;
-DROP TABLE IF EXISTS usuarios CASCADE;
-DROP TABLE IF EXISTS organizaciones CASCADE;
-DROP TABLE IF EXISTS lecturas_sensores CASCADE;
-DROP TABLE IF EXISTS fincas CASCADE;
-
--- ======================
--- TABLA: USUARIOS
--- ======================
-CREATE TABLE usuarios (
-    id_usuario SERIAL PRIMARY KEY,
-    username VARCHAR(50) UNIQUE NOT NULL,
-    nombre VARCHAR(100) NOT NULL,
-    email VARCHAR(100) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    rol VARCHAR(20) NOT NULL CHECK (rol IN ('admin', 'agricultor', 'comprador')),
-    activo BOOLEAN DEFAULT TRUE,
-    fecha_registro TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
--- ======================  
--- TABLA: CULTIVOS
--- ======================
-CREATE TABLE cultivos (
-    id_cultivo SERIAL PRIMARY KEY,
-    id_usuario INTEGER NOT NULL REFERENCES usuarios(id_usuario) ON DELETE CASCADE,
-    tipo_cultivo VARCHAR(50) NOT NULL,
-    variedad VARCHAR(100),
-    hectareas DECIMAL(8, 2) NOT NULL,
-    fecha_siembra TIMESTAMP,
-    fecha_estimada_cosecha TIMESTAMP,
-    estado VARCHAR(20) DEFAULT 'activo',
-    ubicacion_especifica TEXT,
-    coordenadas_lat DECIMAL(10, 8),
-    coordenadas_lng DECIMAL(11, 8)
-);
-
--- Índices para mejor performance
-CREATE INDEX idx_usuarios_username ON usuarios(username);
-CREATE INDEX idx_usuarios_email ON usuarios(email);
-CREATE INDEX idx_usuarios_rol ON usuarios(rol);
-CREATE INDEX idx_cultivos_usuario ON cultivos(id_usuario);
-CREATE INDEX idx_cultivos_tipo ON cultivos(tipo_cultivo);
-CREATE INDEX idx_cultivos_estado ON cultivos(estado);
-
--- Datos de prueba
-INSERT INTO usuarios (username, nombre, email, password_hash, rol) VALUES
-('admin', 'Administrador', 'admin@sachatrace.com', '$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW', 'admin'),
-('agricultor1', 'Juan Pérez', 'juan@example.com', '$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW', 'agricultor'),
-('comprador1', 'María García', 'maria@example.com', '$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW', 'comprador');
-
--- Cultivos de ejemplo
-INSERT INTO cultivos (id_usuario, tipo_cultivo, variedad, hectareas, fecha_siembra, estado) VALUES
-(2, 'Café', 'Arábica', 2.5, '2024-01-15', 'activo'),
-(2, 'Cacao', 'Trinitario', 1.8, '2024-02-01', 'activo');
-"""
-
-def init_database():
-    """Ejecuta la inicialización completa de la base de datos"""
-    logger.info("Iniciando configuración de base de datos...")
-    
-    conn = get_db_connection()
-    try:
-        with conn.cursor() as cur:
-            logger.info("Ejecutando SQL de inicialización...")
-            cur.execute(INIT_SQL)
+        inspector = inspect(engine)
         
-        conn.commit()
-        logger.info("Base de datos inicializada correctamente")
+        if 'sensores' not in inspector.get_table_names():
+            return True
+        
+        columns = [col['name'] for col in inspector.get_columns('sensores')]
+        
+        if 'device_id' in columns:
+            return True
+            
+        if 'sensor_id' in columns:
+            with engine.connect() as connection:
+                connection.execute(text("ALTER TABLE sensores RENAME COLUMN sensor_id TO device_id;"))
+                connection.commit()
+                return True
+        
+        return True
         
     except Exception as e:
-        logger.error(f"Error inicializando base de datos: {e}")
-        conn.rollback()
-        sys.exit(1)
+        logger.error(f"Migration failed: {e}")
+        return False
+
+def create_sample_data():
+    """Create test users, crops and sensors"""
+    db = SessionLocal()
+    try:
+        if db.query(Usuario).count() > 0:
+            return
+        
+        # Test users (password: secret)
+        users = [
+            Usuario(
+                username="admin",
+                nombre="Admin User", 
+                email="admin@sachatrace.com",
+                password_hash="$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",
+                rol="admin"
+            ),
+            Usuario(
+                username="agricultor1",
+                nombre="Juan Pérez",
+                email="juan@example.com", 
+                password_hash="$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",
+                rol="agricultor"
+            ),
+            Usuario(
+                username="comprador1",
+                nombre="María García",
+                email="maria@example.com",
+                password_hash="$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",
+                rol="comprador"
+            )
+        ]
+        
+        for user in users:
+            db.add(user)
+        
+        db.commit()
+        
+        # Test crops
+        crops = [
+            Cultivo(
+                id_usuario=2,  # agricultor1
+                tipo_cultivo="Café",
+                variedad="Arábica",
+                hectareas=2.5,
+                estado="activo",
+                ubicacion_especifica="Norte - Lote A"
+            ),
+            Cultivo(
+                id_usuario=2,  # agricultor1
+                tipo_cultivo="Cacao", 
+                variedad="Trinitario",
+                hectareas=1.8,
+                estado="activo",
+                ubicacion_especifica="Sur - Lote B"
+            )
+        ]
+        
+        for crop in crops:
+            db.add(crop)
+            
+        db.commit()
+        
+        # Test IoT sensors with device_id
+        sensors = [
+            Sensor(
+                device_id="TEMP_001",
+                nombre="Coffee Temperature Sensor",
+                tipo="multisensor",
+                id_cultivo=1,
+                id_usuario=2,
+                ubicacion_sensor="Lote A - Centro",
+                intervalo_lectura=300
+            ),
+            Sensor(
+                device_id="HUM_002", 
+                nombre="Cacao Humidity Sensor",
+                tipo="multisensor",
+                id_cultivo=2,
+                id_usuario=2,
+                ubicacion_sensor="Lote B - Norte",
+                intervalo_lectura=600
+            )
+        ]
+        
+        for sensor in sensors:
+            db.add(sensor)
+            
+        db.commit()
+        
+    except Exception as e:
+        logger.error(f"Sample data failed: {e}")
+        db.rollback()
+        raise
     finally:
-        conn.close()
+        db.close()
+
+def init_db():
+    """Initialize database with tables and sample data"""
+    logger.info("Initializing database...")
+    
+    try:
+        if not migrate_columns():
+            logger.error("Migration failed")
+            sys.exit(1)
+        
+        Base.metadata.create_all(bind=engine)
+        create_sample_data()
+        
+        logger.info("Database initialized successfully")
+        
+    except Exception as e:
+        logger.error(f"Database init failed: {e}")
+        sys.exit(1)
 
 if __name__ == "__main__":
-    init_database()
+    init_db()
