@@ -31,11 +31,11 @@ class Settings(BaseSettings):
         "env_file": ".env.minimal",
         "env_file_encoding": "utf-8",
         "case_sensitive": False,
-        "extra": "ignore"  # Ignorar variables extra del .env
+        "extra": "ignore"  # Ignore extra variables from .env
     }
 
 def get_settings() -> Settings:
-    """Factory function para obtener la configuración de la aplicación"""
+    """Factory function to get application configuration"""
     return Settings()
 
 # Global configuration instance
