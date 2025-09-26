@@ -35,9 +35,10 @@ class Trabajador(Base):
     
     id_trabajador = Column(Integer, primary_key=True, index=True)
     id_empresa = Column(Integer, ForeignKey("empresas.id_empresa", ondelete="CASCADE"), nullable=False)
-    dni = Column(String(8), unique=True, nullable=False, index=True)  # National ID
+    dni = Column(String(8), unique=True, nullable=False, index=True)  # National ID (used as username)
     nombre_completo = Column(String(200), nullable=False)
     password_hash = Column(String(255), nullable=False)
+    rol = Column(String(20), default="worker", index=True)  # admin, supervisor, worker
     activo = Column(Boolean, default=True, index=True)
     fecha_creacion = Column(DateTime(timezone=True), server_default=func.now())
     
