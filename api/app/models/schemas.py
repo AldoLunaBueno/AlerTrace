@@ -55,7 +55,7 @@ class SensorResponse(BaseModel):
     device_id: str
     nombre: str
     tipo: str
-    id_cultivo: int
+    id_empresa: int
     activo: bool
     intervalo_lectura: int
     ultima_lectura: Optional[datetime] = None
