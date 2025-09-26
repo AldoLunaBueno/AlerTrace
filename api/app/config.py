@@ -28,7 +28,10 @@ class Settings(BaseSettings):
         return f"postgresql://{self.postgres_user}:{self.postgres_password}@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
     
     model_config = {
-        "env_file": ".env",
+        "env_file": [
+            os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), ".env"),  # Root .env
+            ".env"  # Fallback to local .env
+        ],
         "env_file_encoding": "utf-8",
         "case_sensitive": False,
         "extra": "ignore"  # Ignore extra variables from .env
