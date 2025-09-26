@@ -59,4 +59,10 @@ resource "aws_ecs_service" "api" {
     security_groups  = [var.sg_id]
     assign_public_ip = true
   }
+
+  load_balancer {
+    target_group_arn = var.target_group_arn
+    container_name   = "api"
+    container_port   = 8000
+  }
 }

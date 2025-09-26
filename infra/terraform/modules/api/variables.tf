@@ -6,3 +6,4 @@ variable "env_vars" { type = list(object({
   name  = string
   value = string
 })) }
+variable "target_group_arn" {}

@@ -1,3 +1,4 @@
+domain_name   = "tarpuqkuna.lat"
 region        = "us-east-1"
 env           = "dev"
 db_name       = "postgres"

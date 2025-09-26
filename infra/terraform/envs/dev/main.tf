@@ -6,9 +6,9 @@ module "network" {
   source             = "../../modules/network"
   env                = "dev"
   vpc_cidr           = "10.3.0.0/16"
-  public_subnets     = ["10.3.1.0/24"]
   availability_zones = ["${var.region}a", "${var.region}b"]
-  private_subnets    = ["10.3.2.0/24", "10.3.3.0/24"]
+  public_subnets     = ["10.3.2.0/24", "10.3.1.0/24"]
+  private_subnets    = ["10.3.3.0/24", "10.3.4.0/24"]
 }
 
 module "api" {
@@ -18,9 +18,11 @@ module "api" {
   subnets   = module.network.public_subnet_ids
   sg_id     = module.network.api_sg_id
   env_vars = [
-    # { name = "DB_HOST", value = module.db.db_endpoint },
+    { name = "DB_HOST", value = module.db.db_endpoint },
     # { name = "REDIS_HOST", value = module.cache.cache_endpoint }
   ]
+  target_group_arn = module.lb.target_group_arn
+  depends_on = [module.lb]
 }
 
 resource "aws_db_subnet_group" "db" {
@@ -60,12 +62,34 @@ module "cache" {
   subnet_group_name = aws_elasticache_subnet_group.cache.name
 }
 
+module "lb" {
+  source        = "../../modules/lb"
+  env           = var.env
+  sg_id         = module.network.api_sg_id
+  subnets       = module.network.public_subnet_ids
+  vpc_id        = module.network.vpc_id
+  container_port = 8000
+
+  zone_id       = data.aws_route53_zone.main.zone_id
+  domain_name   = var.domain_name
+}
+
+# Obtiene la hosted zone ya creada en AWS
+data "aws_route53_zone" "main" {
+  name         = var.domain_name
+  private_zone = false
+}
+
+output "zone_id" {
+  value = data.aws_route53_zone.main.zone_id
+}
 
 # === API --(imagen docker)--> ECR --> ECS
 
 # Repositorio en ECR para la API
 resource "aws_ecr_repository" "api" {
   name = "api-${var.env}"
+  force_delete = true
 }
 
 # Login, build y push de la imagen
