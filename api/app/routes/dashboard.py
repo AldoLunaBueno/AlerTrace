@@ -50,7 +50,7 @@ async def obtener_dashboard(
     return DashboardResponse(
         total_cultivos=total_cultivos,
         cultivos_activos=cultivos_activos,
-        alertas_pendientes=0  # Por implementar
+        alertas_pendientes=0  # TODO: Implement
     )
 
 
