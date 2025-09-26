@@ -51,16 +51,16 @@ class Sensor(Base):
     """Modelo de sensor IoT asociado a un cultivo"""
     __tablename__ = "sensores"
     
-    id_sensor = Column(Integer, primary_key=True, index=True)  # PK para base de datos
-    device_id = Column(String(50), unique=True, nullable=False, index=True)  # ID físico del dispositivo IoT
+    id_sensor = Column(Integer, primary_key=True, index=True)  # Database PK
+    device_id = Column(String(50), unique=True, nullable=False, index=True)  # Physical IoT device ID
     nombre = Column(String(100), nullable=False)
     tipo = Column(String(50), nullable=False)  # temperature, humidity, soil_moisture, ph, light
     id_cultivo = Column(Integer, ForeignKey("cultivos.id_cultivo"), nullable=False)
     id_usuario = Column(Integer, ForeignKey("usuarios.id_usuario"), nullable=False)
     activo = Column(Boolean, default=True)
-    intervalo_lectura = Column(Integer, default=300)  # segundos entre lecturas
+    intervalo_lectura = Column(Integer, default=300)  # seconds between readings
     ultima_lectura = Column(DateTime)
-    bateria_nivel = Column(Integer)  # porcentaje de batería
+    bateria_nivel = Column(Integer)  # battery percentage
     ubicacion_sensor = Column(String(200))
     coordenadas_lat = Column(DECIMAL(10, 8))
     coordenadas_lng = Column(DECIMAL(11, 8))
@@ -82,12 +82,12 @@ class LecturaSensor(Base):
     id_cultivo = Column(Integer, ForeignKey("cultivos.id_cultivo"), nullable=False)
     timestamp = Column(DateTime, default=func.now(), index=True)
     
-    # Sensores específicos requeridos
-    temperatura = Column(DECIMAL(5, 2))  # °C - Temperatura del ambiente
-    humedad_aire = Column(DECIMAL(5, 2))  # % - Humedad del ambiente
-    humedad_suelo = Column(DECIMAL(5, 2))  # % - Humedad del suelo
-    ph_suelo = Column(DECIMAL(4, 2))  # pH - pH del suelo
-    radiacion_solar = Column(DECIMAL(8, 2))  # W/m² - Radiación solar
+    # Required sensor measurements
+    temperatura = Column(DECIMAL(5, 2))  # °C - Air temperature
+    humedad_aire = Column(DECIMAL(5, 2))  # % - Air humidity
+    humedad_suelo = Column(DECIMAL(5, 2))  # % - Soil moisture
+    ph_suelo = Column(DECIMAL(4, 2))  # pH - Soil pH level
+    radiacion_solar = Column(DECIMAL(8, 2))  # W/m² - Solar radiation
     
     sensor = relationship("Sensor", back_populates="lecturas")
     cultivo = relationship("Cultivo", back_populates="lecturas_sensores")
@@ -119,30 +119,30 @@ class Alerta(Base):
 
 
 class ConfiguracionUmbral(Base):
-    """Modelo de configuración de umbrales por cultivo y sensor"""
+    """Threshold configuration model per crop and sensor"""
     __tablename__ = "configuracion_umbrales"
     
     id_configuracion = Column(Integer, primary_key=True, index=True)
     id_cultivo = Column(Integer, ForeignKey("cultivos.id_cultivo"), nullable=False)
     id_usuario = Column(Integer, ForeignKey("usuarios.id_usuario"), nullable=False)
     
-    # Umbrales de temperatura del ambiente
+    # Air temperature thresholds
     temp_min = Column(DECIMAL(5, 2), default=10.0)  # °C
     temp_max = Column(DECIMAL(5, 2), default=35.0)  # °C
     
-    # Umbrales de humedad del ambiente
+    # Air humidity thresholds
     humedad_aire_min = Column(DECIMAL(5, 2), default=40.0)  # %
     humedad_aire_max = Column(DECIMAL(5, 2), default=90.0)  # %
     
-    # Umbrales de humedad del suelo
+    # Soil humidity thresholds
     humedad_suelo_min = Column(DECIMAL(5, 2), default=30.0)  # %
     humedad_suelo_max = Column(DECIMAL(5, 2), default=80.0)  # %
     
-    # Umbrales de pH del suelo
+    # Soil pH thresholds
     ph_min = Column(DECIMAL(4, 2), default=6.0)
     ph_max = Column(DECIMAL(4, 2), default=7.5)
     
-    # Umbrales de radiación solar
+    # Solar radiation thresholds
     radiacion_min = Column(DECIMAL(8, 2), default=200.0)  # W/m²
     radiacion_max = Column(DECIMAL(8, 2), default=1000.0)  # W/m²
     
