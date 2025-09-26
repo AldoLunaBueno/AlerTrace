@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from typing import Optional
 from .jwt_service import jwt_service
 from ..database.connection import get_db
-from ..models.database import Usuario
+from ..models.database import Trabajador
 
 # Security scheme for Bearer tokens
 security = HTTPBearer()
@@ -12,7 +12,7 @@ security = HTTPBearer()
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db)
-) -> Usuario:
+) -> Trabajador:
     """Extract and validate current user from JWT token and return User object"""
     token = credentials.credentials
     payload = jwt_service.verify_token(token)
@@ -25,8 +25,8 @@ def get_current_user(
         )
     
     # Get user from database
-    username = payload.get("sub")
-    user = db.query(Usuario).filter(Usuario.username == username).first()
+    dni = payload.get("sub")
+    user = db.query(Trabajador).filter(Trabajador.dni == dni).first()
     
     if not user:
         raise HTTPException(
@@ -44,9 +44,9 @@ def get_current_user(
     
     return user
 
-def require_admin(current_user: Usuario = Depends(get_current_user)) -> Usuario:
+def require_admin(current_user: Trabajador = Depends(get_current_user)) -> Trabajador:
     """Validate that current user has admin role"""
-    if current_user.rol != "admin":
+    if current_user.dni != "12345678":  # Temporary admin check by DNI
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Administrator permissions required"
