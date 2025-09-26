@@ -166,7 +166,7 @@ aws-credentials.json
 .aws-sam/
 
 # Archivos de Terraform
-*.tfstate.*
+*.tfstate*
 .terraform/
 .terraform.lock.hcl
 
