@@ -1,6 +1,6 @@
 """
-API Backend para SachaTrace - Sistema de Trazabilidad Agrícola
-FastAPI con autenticación JWT y base de datos PostgreSQL
+SachaTrace API - Agricultural IoT monitoring system
+FastAPI backend with JWT authentication and PostgreSQL
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -14,8 +14,8 @@ from .routes.dashboard import router as dashboard_router
 
 app = FastAPI(
     title="SachaTrace API",
-    description="Sistema de Trazabilidad Agrícola",
-    version="1.0.0"
+    description="Agricultural IoT monitoring system",
+    version="1.1.0"
 )
 
 # CORS configuration
