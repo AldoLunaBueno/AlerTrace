@@ -3,6 +3,7 @@
 .env
 .env.local
 .env.*.local
+.env.minimal
 
 # Archivos de backup de configuración
 .env.backup
