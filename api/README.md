@@ -33,9 +33,11 @@ Monitors 5 critical agricultural parameters:
 ## API Endpoints
 
 ### Sensor Data
-- `POST /sensores/data` - Receive IoT sensor readings
-- `GET /sensores/{id}/lecturas` - Historical sensor data
+- `POST /sensores/data` - Receive IoT sensor readings (using device_id)
+- `GET /sensores/{id_sensor}/lecturas` - Historical sensor data (using database ID)
 - `POST /sensores/umbrales` - Configure alert thresholds
+- `POST /sensores/` - Register new IoT sensor
+- `GET /sensores/` - List user's sensors
 
 ### Authentication
 - `POST /auth/login` - User authentication
@@ -44,6 +46,35 @@ Monitors 5 critical agricultural parameters:
 ### Dashboard
 - `GET /dashboard/stats` - Real-time monitoring stats
 - `GET /dashboard/alerts` - Active alert summary
+
+**Documentation:** http://localhost:8000/docs
+
+## IoT Data Format
+
+### Sensor Data Input (POST /sensores/data)
+```json
+{
+  "device_id": "TEMP_001",
+  "temperatura": 25.5,
+  "humedad_aire": 65.2,
+  "humedad_suelo": 45.8,
+  "ph_suelo": 6.5,
+  "radiacion_solar": 850.0,
+  "timestamp": "2025-09-25T10:30:00Z"
+}
+```
+
+### Sensor Registration (POST /sensores/)
+```json
+{
+  "device_id": "TEMP_001",
+  "nombre": "Sensor Temperatura Principal",
+  "tipo": "multisensor",
+  "id_cultivo": 1,
+  "ubicacion_sensor": "Zona Norte",
+  "intervalo_lectura": 300
+}
+```
 
 ## Configuration
 
