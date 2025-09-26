@@ -4,29 +4,27 @@ from pydantic_settings import BaseSettings
 from pydantic import field_validator
 
 class Settings(BaseSettings):
-    """Configuración de la aplicación utilizando variables de entorno"""
-    # Configuración general
+    """Application configuration using environment variables"""
     app_name: str = "SachaTrace API"
     app_version: str = "1.0.0"
     environment: str = "production"
     debug: bool = False
     log_level: str = "INFO"
     
-    # Base de datos PostgreSQL - Solo las que necesitamos
     postgres_host: str
     postgres_port: int
     postgres_user: str
     postgres_password: str
     postgres_db: str
     
-    # JWT Configuration - Solo las que necesitamos
+    # JWT Configuration
     jwt_secret_key: str
     jwt_algorithm: str = "HS256"
     jwt_access_token_expire_minutes: int = 30
     
     @property
     def database_url(self) -> str:
-        """Construye la URL de conexión a AWS RDS PostgreSQL"""
+        """Build PostgreSQL connection URL"""
         return f"postgresql://{self.postgres_user}:{self.postgres_password}@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
     
     model_config = {
@@ -40,5 +38,5 @@ def get_settings() -> Settings:
     """Factory function para obtener la configuración de la aplicación"""
     return Settings()
 
-# Instancia global de configuración
+# Global configuration instance
 settings = get_settings()
