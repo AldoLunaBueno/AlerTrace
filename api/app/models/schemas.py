@@ -1,14 +1,13 @@
 """
-Modelos Pydantic para validación de datos de entrada y salida
+Pydantic models for IoT sensor data validation
 """
 from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from datetime import datetime
 
 
-# Modelos básicos
 class HealthCheck(BaseModel):
-    """Modelo para respuesta de health check"""
+    """Health check response"""
     status: str
     timestamp: int
     version: str
@@ -16,19 +15,19 @@ class HealthCheck(BaseModel):
 
 
 class SensorData(BaseModel):
-    """Modelo para datos recibidos de sensores IoT"""
-    sensor_id: str
-    temperatura: Optional[float] = None  # Temperatura del ambiente (°C)
-    humedad_aire: Optional[float] = None  # Humedad del ambiente (%)
-    humedad_suelo: Optional[float] = None  # Humedad del suelo (%)
-    ph_suelo: Optional[float] = None  # pH del suelo
-    radiacion_solar: Optional[float] = None  # Radiación solar (W/m²)
+    """IoT sensor data input"""
+    device_id: str  # Physical device identifier
+    temperatura: Optional[float] = None  # Air temperature (°C)
+    humedad_aire: Optional[float] = None  # Air humidity (%)
+    humedad_suelo: Optional[float] = None  # Soil moisture (%)
+    ph_suelo: Optional[float] = None  # Soil pH level
+    radiacion_solar: Optional[float] = None  # Solar radiation (W/m²)
     timestamp: Optional[str] = None
 
 
 class SensorCreate(BaseModel):
-    """Modelo para registrar un nuevo sensor"""
-    sensor_id: str
+    """New sensor registration"""
+    device_id: str  # Identificador físico del dispositivo IoT
     nombre: str
     tipo: str
     id_cultivo: int
@@ -53,7 +52,7 @@ class SensorResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     
     id_sensor: int
-    sensor_id: str
+    device_id: str
     nombre: str
     tipo: str
     id_cultivo: int
