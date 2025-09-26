@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from ..database.connection import get_db
-from ..models.database import Usuario
+from ..models.database import Trabajador
 from ..models.schemas import LoginRequest, LoginResponse, UserInfo
 from ..auth.jwt_service import jwt_service
 from ..auth.dependencies import get_current_user
@@ -26,8 +26,8 @@ def verify_password(stored_password: str, provided_password: str) -> bool:
 
 @router.post("/login", response_model=LoginResponse)
 def login(request: LoginRequest, db: Session = Depends(get_db)):
-    """Endpoint de login para obtener token JWT"""
-    user = db.query(Usuario).filter(Usuario.username == request.username).first()
+    """Endpoint de login para obtener token JWT - Use DNI as username"""
+    user = db.query(Trabajador).filter(Trabajador.dni == request.username).first()
     
     if not user or not verify_password(user.password_hash, request.password):
         raise HTTPException(
@@ -42,22 +42,22 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
         )
     
     # Crear token
-    access_token = jwt_service.create_access_token(data={"sub": user.username, "user_id": str(user.id_usuario)})
+    access_token = jwt_service.create_access_token(data={"sub": user.dni, "user_id": str(user.id_trabajador)})
     
     return LoginResponse(
         access_token=access_token,
         token_type="bearer",
-        user_id=str(user.id_usuario),
-        username=user.username
+        user_id=str(user.id_trabajador),
+        username=user.dni
     )
 
 
 @router.get("/me", response_model=UserInfo)
-def get_current_user_info(current_user: Usuario = Depends(get_current_user)):
+def get_current_user_info(current_user: Trabajador = Depends(get_current_user)):
     """Obtener información del usuario actual"""
     return UserInfo(
-        user_id=str(current_user.id_usuario),
-        username=current_user.username,
+        user_id=str(current_user.id_trabajador),
+        username=current_user.dni,
         role=current_user.rol
     )
 
