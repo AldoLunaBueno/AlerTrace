@@ -6,7 +6,6 @@ from sqlalchemy import ForeignKey
 from ..config import settings
 import datetime
 
-# Configuración de la base de datos
 engine = create_engine(settings.database_url)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -25,7 +24,6 @@ class Usuario(Base):
     activo = Column(Boolean, default=True)
     fecha_registro = Column(DateTime(timezone=True), server_default=func.now())
     
-    # Relaciones
     cultivos = relationship("Cultivo", back_populates="usuario")
 
 class Cultivo(Base):
@@ -44,7 +42,6 @@ class Cultivo(Base):
     coordenadas_lat = Column(DECIMAL(10, 8))
     coordenadas_lng = Column(DECIMAL(11, 8))
     
-    # Relaciones
     usuario = relationship("Usuario", back_populates="cultivos")
     sensores = relationship("Sensor", back_populates="cultivo")
     lecturas_sensores = relationship("LecturaSensor", back_populates="cultivo")
@@ -54,8 +51,8 @@ class Sensor(Base):
     """Modelo de sensor IoT asociado a un cultivo"""
     __tablename__ = "sensores"
     
-    id_sensor = Column(Integer, primary_key=True, index=True)
-    sensor_id = Column(String(50), unique=True, nullable=False, index=True)  # ID físico del sensor
+    id_sensor = Column(Integer, primary_key=True, index=True)  # PK para base de datos
+    device_id = Column(String(50), unique=True, nullable=False, index=True)  # ID físico del dispositivo IoT
     nombre = Column(String(100), nullable=False)
     tipo = Column(String(50), nullable=False)  # temperature, humidity, soil_moisture, ph, light
     id_cultivo = Column(Integer, ForeignKey("cultivos.id_cultivo"), nullable=False)
@@ -70,7 +67,6 @@ class Sensor(Base):
     fecha_instalacion = Column(DateTime, default=func.now())
     fecha_mantenimiento = Column(DateTime)
     
-    # Relaciones
     cultivo = relationship("Cultivo", back_populates="sensores")
     usuario = relationship("Usuario")
     lecturas = relationship("LecturaSensor", back_populates="sensor")
@@ -93,7 +89,6 @@ class LecturaSensor(Base):
     ph_suelo = Column(DECIMAL(4, 2))  # pH - pH del suelo
     radiacion_solar = Column(DECIMAL(8, 2))  # W/m² - Radiación solar
     
-    # Relaciones
     sensor = relationship("Sensor", back_populates="lecturas")
     cultivo = relationship("Cultivo", back_populates="lecturas_sensores")
 
@@ -119,7 +114,6 @@ class Alerta(Base):
     fecha_resolucion = Column(DateTime)
     notas_resolucion = Column(Text)
     
-    # Relaciones
     sensor = relationship("Sensor", back_populates="alertas")
     usuario = relationship("Usuario")
 
@@ -155,12 +149,11 @@ class ConfiguracionUmbral(Base):
     activo = Column(Boolean, default=True)
     fecha_creacion = Column(DateTime, default=func.now())
     
-    # Relaciones
     usuario = relationship("Usuario")
 
-# Funciones de utilidad
+# Utility functions
 def get_db():
-    """Generator para obtener sesiones de base de datos con manejo automático de cleanup"""
+    """Generator for database sessions with automatic cleanup handling"""
     db = SessionLocal()
     try:
         yield db
@@ -168,5 +161,5 @@ def get_db():
         db.close()
 
 def create_tables():
-    """Crea todas las tablas definidas en los modelos"""
+    """Creates all tables defined in models"""
     Base.metadata.create_all(bind=engine)
