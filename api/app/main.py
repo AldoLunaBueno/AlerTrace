@@ -1,17 +1,11 @@
-"""
-SachaTrace API - Agricultural IoT monitoring system
-FastAPI backend with JWT authentication and PostgreSQL
-"""
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import time
 
 # Importar los routers modulares
 from app.routes import auth  # cultivos, admin, dashboard, sensores
-# from .routes.cultivos import router as cultivos_router
-# from .routes.admin import router as admin_router
-# from .routes.dashboard import router as dashboard_router
 from .routes.sensores import router as sensores_router
+from .routes import health
 
 app = FastAPI(
     title="SachaTrace API",
@@ -31,9 +25,7 @@ app.add_middleware(
 # Incluir routers
 app.include_router(auth.router)
 app.include_router(sensores_router)
-# app.include_router(cultivos.router)
-# app.include_router(admin.router)
-# app.include_router(dashboard.router)
+app.include_router(health.router, tags=["Health"])
 
 
 @app.get("/", tags=["Sistema"])
