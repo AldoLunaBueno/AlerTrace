@@ -1,0 +1,360 @@
+# SachaTrace Frontend - Cursor Rules
+
+## Arquitectura del Frontend
+
+### Tecnologías Principales
+- **Framework**: Next.js 14+ con App Router
+- **Lenguaje**: TypeScript
+- **Estilos**: Tailwind CSS con configuración personalizada
+- **Iconos**: Lucide React
+- **Mapas**: Leaflet con React-Leaflet
+- **Animaciones**: Anime.js
+- **HTTP Client**: Axios
+- **Estado**: React hooks (useState, useEffect, etc.)
+
+### Estructura de Carpetas
+```
+src/
+├── app/                          # App Router de Next.js
+│   ├── (dashboard-agricultor)/   # Grupo de rutas para agricultores
+│   ├── (dashboard-empresa)/      # Grupo de rutas para empresas
+│   ├── globals.css              # Estilos globales
+│   ├── layout.tsx               # Layout raíz
+│   ├── login/                   # Página de login
+│   ├── registro/                # Página de registro
+│   └── page.tsx                 # Página principal
+├── components/                   # Componentes reutilizables
+│   ├── animations/              # Componentes de animación
+│   ├── dashboard/               # Componentes específicos del dashboard
+│   ├── landing/                 # Componentes de la página principal
+│   ├── mobile/                  # Componentes móviles
+│   ├── shared/                  # Componentes compartidos
+│   ├── sidebar-agricultor.tsx   # Sidebar para agricultores
+│   └── sidebar.tsx              # Sidebar para empresas
+├── hooks/                       # Custom hooks
+├── lib/                         # Utilidades y configuración
+│   ├── api.ts                   # Cliente de API
+│   └── utils.ts                 # Funciones utilitarias
+└── types/                       # Definiciones de tipos TypeScript
+```
+
+### Patrones de Diseño
+
+#### 1. Layouts Responsivos
+- **Desktop**: Sidebar fijo + contenido principal
+- **Mobile**: Bottom navigation + header móvil
+- **Breakpoints**: md (768px) como punto de cambio
+
+#### 2. Sistema de Navegación
+- **Grupos de rutas**: `(dashboard-agricultor)` y `(dashboard-empresa)`
+- **Sidebar**: Navegación principal en desktop
+- **Bottom Nav**: Navegación móvil con iconos
+- **Breadcrumbs**: Integrados en headers
+
+#### 3. Componentes
+- **Atomic Design**: Componentes atómicos reutilizables
+- **Props Interface**: TypeScript para todas las props
+- **Default Props**: Valores por defecto sensatos
+- **Error Boundaries**: Manejo de errores en componentes críticos
+
+#### 4. API Integration
+- **Dual API**: Read API (puerto 3002) y Write API (puerto 3001)
+- **Error Handling**: Fallback a datos simulados
+- **Type Safety**: Interfaces TypeScript para todas las respuestas
+- **Caching**: Implementar caché para datos que no cambian frecuentemente
+
+### Configuración de Tailwind
+
+#### Colores Personalizados
+```javascript
+colors: {
+  // Sistema de colores base
+  border: "hsl(var(--border))",
+  input: "hsl(var(--input))",
+  // ... colores del sistema
+  
+  // Colores específicos para SachaTrace
+  sacha: {
+    50: '#f0f9ff',
+    100: '#e0f2fe',
+    // ... escala completa
+    900: '#0c4a6e',
+  },
+  success: { DEFAULT: '#10b981', foreground: '#ffffff' },
+  warning: { DEFAULT: '#f59e0b', foreground: '#ffffff' },
+  error: { DEFAULT: '#ef4444', foreground: '#ffffff' },
+}
+```
+
+#### Animaciones Personalizadas
+- `pulse-slow`: Animación de pulso lento para elementos en carga
+- `accordion-down/up`: Para componentes colapsables
+
+### Backend Integration (SachaTrace API)
+
+#### Endpoints Principales
+- **Base URL**: `http://localhost:8000`
+- **Autenticación**: JWT tokens
+- **Documentación**: `/docs` (Swagger UI)
+
+#### Modelos de Datos
+```typescript
+// Sensores
+interface SensorData {
+  device_id: string
+  temperatura?: number
+  humedad_aire?: number
+  humedad_suelo?: number
+  ph_suelo?: number
+  radiacion_solar?: number
+  timestamp?: string
+}
+
+// Cultivos
+interface CultivoResponse {
+  id_cultivo: number
+  tipo_cultivo: string
+  variedad?: string
+  hectareas: number
+  fecha_siembra?: Date
+  fecha_estimada_cosecha?: Date
+  estado: string
+  ubicacion_especifica?: string
+  coordenadas_lat?: number
+  coordenadas_lng?: number
+}
+
+// Alertas
+interface AlertaResponse {
+  id_alerta: number
+  id_sensor: number
+  tipo_alerta: string
+  severidad: string
+  titulo: string
+  mensaje: string
+  valor_actual?: number
+  valor_umbral?: number
+  resuelta: boolean
+  fecha_creacion: Date
+}
+```
+
+#### Rutas de API
+- `GET /` - Información del sistema
+- `POST /auth/login` - Autenticación
+- `GET /sensores` - Lista de sensores
+- `POST /sensores` - Crear sensor
+- `GET /sensores/{id}/datos` - Datos del sensor
+- `GET /cultivos` - Lista de cultivos
+- `POST /cultivos` - Crear cultivo
+- `GET /alertas` - Lista de alertas
+
+### Convenciones de Código
+
+#### 1. Naming
+- **Componentes**: PascalCase (`SensorCard.tsx`)
+- **Hooks**: camelCase con prefijo `use` (`useSensorData.ts`)
+- **Utilidades**: camelCase (`formatDate.ts`)
+- **Tipos**: PascalCase (`SensorData`, `CultivoResponse`)
+
+#### 2. Imports
+```typescript
+// Orden de imports
+import React from 'react'
+import { NextPage } from 'next'
+import { useRouter } from 'next/navigation'
+
+// Componentes locales
+import { SensorCard } from '@/components/dashboard/SensorCard'
+import { useSensorData } from '@/hooks/useSensorData'
+
+// Utilidades
+import { formatDate } from '@/lib/utils'
+```
+
+#### 3. Componentes
+```typescript
+// Estructura estándar de componente
+interface ComponentProps {
+  // Props con tipos específicos
+}
+
+export function Component({ prop1, prop2 }: ComponentProps) {
+  // Hooks al inicio
+  const [state, setState] = useState()
+  
+  // Handlers
+  const handleAction = () => {
+    // Lógica
+  }
+  
+  // Render
+  return (
+    <div className="tailwind-classes">
+      {/* JSX */}
+    </div>
+  )
+}
+```
+
+### Responsive Design
+
+#### Breakpoints
+- **Mobile**: < 768px (sm)
+- **Tablet**: 768px - 1024px (md, lg)
+- **Desktop**: > 1024px (xl, 2xl)
+
+#### Mobile-First Approach
+```css
+/* Mobile first */
+.component {
+  @apply p-4 text-sm;
+}
+
+/* Tablet */
+@screen md {
+  .component {
+    @apply p-6 text-base;
+  }
+}
+
+/* Desktop */
+@screen xl {
+  .component {
+    @apply p-8 text-lg;
+  }
+}
+```
+
+### Performance
+
+#### Optimizaciones
+- **Image Optimization**: Next.js Image component
+- **Code Splitting**: Lazy loading de componentes pesados
+- **Bundle Analysis**: Monitoreo del tamaño del bundle
+- **Caching**: Implementar estrategias de caché apropiadas
+
+#### Loading States
+- **Skeleton Loaders**: Para contenido en carga
+- **Progressive Loading**: Cargar contenido crítico primero
+- **Error Boundaries**: Manejo elegante de errores
+
+### Testing
+
+#### Estrategia
+- **Unit Tests**: Jest + React Testing Library
+- **Integration Tests**: Para flujos completos
+- **E2E Tests**: Playwright para casos críticos
+
+### Deployment
+
+#### Configuración
+- **Environment Variables**: Para URLs de API y configuraciones
+- **Build Optimization**: Standalone output para Docker
+- **Security Headers**: Configurados en next.config.js
+
+#### Docker
+```dockerfile
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+COPY . .
+RUN npm run build
+EXPOSE 3000
+CMD ["npm", "start"]
+```
+
+### Convenciones de Commits
+- **feat**: Nueva funcionalidad
+- **fix**: Corrección de bugs
+- **docs**: Documentación
+- **style**: Formato, espacios, etc.
+- **refactor**: Refactorización de código
+- **test**: Tests
+- **chore**: Tareas de mantenimiento
+
+### Estructura de Páginas
+
+#### Dashboard Principal
+- **KPIs**: Métricas principales del sistema
+- **Gráficos**: Visualización de datos en tiempo real
+- **Alertas**: Notificaciones importantes
+- **Acciones rápidas**: Botones para tareas comunes
+
+#### Gestión de Sensores
+- **Lista de sensores**: Tabla con filtros y búsqueda
+- **Detalle de sensor**: Información completa y gráficos
+- **Configuración**: Parámetros del sensor
+- **Historial**: Datos históricos
+
+#### Gestión de Cultivos
+- **Lista de cultivos**: Vista de todos los cultivos
+- **Detalle de cultivo**: Información y sensores asociados
+- **Mapa**: Ubicación geográfica
+- **Reportes**: Análisis y estadísticas
+
+### Accesibilidad
+- **ARIA Labels**: Para elementos interactivos
+- **Keyboard Navigation**: Navegación completa con teclado
+- **Color Contrast**: Cumplir estándares WCAG
+- **Screen Readers**: Compatibilidad con lectores de pantalla
+
+### Internacionalización
+- **i18n Ready**: Estructura preparada para múltiples idiomas
+- **Default Language**: Español
+- **Date/Time**: Formato localizado
+- **Numbers**: Formato de región
+
+---
+
+## Instrucciones de Desarrollo
+
+1. **Siempre usar TypeScript** con tipos estrictos
+2. **Mobile-first** en todos los diseños
+3. **Componentes reutilizables** con props tipadas
+4. **Manejo de errores** con fallbacks apropiados
+5. **Performance** como prioridad
+6. **Accesibilidad** integrada desde el inicio
+7. **Testing** para componentes críticos
+8. **Documentación** en código y README
+
+## Comandos Útiles
+
+```bash
+# Desarrollo
+pnpm dev
+
+# Build
+pnpm build
+
+# Linting
+pnpm lint
+
+# Type checking
+pnpm type-check
+
+# Limpiar
+pnpm clean
+
+# Preview (build + start)
+pnpm preview
+
+# Instalar dependencias
+pnpm install
+
+# Agregar dependencia
+pnpm add <package-name>
+
+# Agregar dependencia de desarrollo
+pnpm add -D <package-name>
+
+# Remover dependencia
+pnpm remove <package-name>
+
+# Actualizar dependencias
+pnpm update
+
+# Verificar dependencias
+pnpm audit
+```
