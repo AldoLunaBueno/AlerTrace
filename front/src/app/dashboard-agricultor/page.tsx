@@ -20,6 +20,119 @@ import {
   AlertCircle,
   Zap
 } from 'lucide-react'
+import api from '@/lib/api'
+import type { SensorData as APISensorData } from '@/lib/api'
+
+// Funciones helper para convertir datos de la API
+const getValorSensor = (sensor: APISensorData): number => {
+  switch (sensor.tipo) {
+    case 'temperatura':
+      return sensor.temperatura || 25
+    case 'humedad':
+      return sensor.humedad_aire || sensor.humedad_suelo || 60
+    case 'ph':
+      return sensor.ph || 6.5
+    case 'radiacion':
+      return sensor.radiacion_solar || 0
+    case 'multisensor':
+      return sensor.temperatura || 25 // Valor por defecto para multisensor
+    case 'humedad_suelo':
+      return sensor.humedad_suelo || 60
+    case 'ph_suelo':
+      return sensor.ph || 6.5
+    case 'radiacion_solar':
+      return sensor.radiacion_solar || 800
+    case 'gps_tracker':
+      return sensor.bateria_nivel || 85 // Para GPS, mostramos nivel de batería
+    default:
+      return 25 // Valor fijo en lugar de aleatorio
+  }
+}
+
+const getUnidadPorTipo = (tipo: string): string => {
+  switch (tipo) {
+    case 'temperatura': return '°C'
+    case 'humedad': return '%'
+    case 'ph': return 'pH'
+    case 'radiacion': return 'W/m²'
+    case 'multisensor': return '°C'
+    case 'humedad_suelo': return '%'
+    case 'ph_suelo': return 'pH'
+    case 'radiacion_solar': return 'W/m²'
+    case 'gps_tracker': return '%'
+    case 'nutrientes': return 'ppm'
+    case 'luz': return '%'
+    default: return ''
+  }
+}
+
+const getRangoPorTipo = (tipo: string): { min: number; max: number } => {
+  switch (tipo) {
+    case 'temperatura': return { min: 15, max: 35 }
+    case 'humedad': return { min: 40, max: 90 }
+    case 'ph': return { min: 5.5, max: 7.5 }
+    case 'radiacion': return { min: 0, max: 1000 }
+    case 'multisensor': return { min: 15, max: 35 }
+    case 'humedad_suelo': return { min: 30, max: 80 }
+    case 'ph_suelo': return { min: 5.5, max: 7.5 }
+    case 'radiacion_solar': return { min: 200, max: 1200 }
+    case 'gps_tracker': return { min: 0, max: 100 }
+    case 'nutrientes': return { min: 100, max: 500 }
+    case 'luz': return { min: 60, max: 100 }
+    default: return { min: 0, max: 100 }
+  }
+}
+
+const getIconoPorTipo = (tipo: string) => {
+  switch (tipo) {
+    case 'temperatura': return Thermometer
+    case 'humedad': return Droplets
+    case 'ph': return Sprout
+    case 'radiacion': return Sun
+    case 'multisensor': return Thermometer
+    case 'humedad_suelo': return Droplets
+    case 'ph_suelo': return Sprout
+    case 'radiacion_solar': return Sun
+    case 'gps_tracker': return MapPin
+    case 'nutrientes': return Sprout
+    case 'luz': return Sun
+    default: return Activity
+  }
+}
+
+const getColorPorTipo = (tipo: string): string => {
+  switch (tipo) {
+    case 'temperatura': return 'text-red-600'
+    case 'humedad': return 'text-blue-600'
+    case 'ph': return 'text-purple-600'
+    case 'radiacion': return 'text-orange-600'
+    case 'multisensor': return 'text-red-600'
+    case 'humedad_suelo': return 'text-blue-600'
+    case 'ph_suelo': return 'text-purple-600'
+    case 'radiacion_solar': return 'text-orange-600'
+    case 'gps_tracker': return 'text-green-600'
+    case 'nutrientes': return 'text-green-600'
+    case 'luz': return 'text-orange-600'
+    default: return 'text-gray-600'
+  }
+}
+
+const getBgColorPorTipo = (tipo: string): string => {
+  switch (tipo) {
+    case 'temperatura': return 'bg-red-100 dark:bg-red-900/20'
+    case 'humedad': return 'bg-blue-100 dark:bg-blue-900/20'
+    case 'ph': return 'bg-purple-100 dark:bg-purple-900/20'
+    case 'radiacion': return 'bg-orange-100 dark:bg-orange-900/20'
+    case 'multisensor': return 'bg-red-100 dark:bg-red-900/20'
+    case 'humedad_suelo': return 'bg-blue-100 dark:bg-blue-900/20'
+    case 'ph_suelo': return 'bg-purple-100 dark:bg-purple-900/20'
+    case 'radiacion_solar': return 'bg-orange-100 dark:bg-orange-900/20'
+    case 'gps_tracker': return 'bg-green-100 dark:bg-green-900/20'
+    case 'nutrientes': return 'bg-green-100 dark:bg-green-900/20'
+    case 'luz': return 'bg-orange-100 dark:bg-orange-900/20'
+    default: return 'bg-gray-100 dark:bg-gray-900/20'
+  }
+}
 
 interface SensorData {
   id: string
@@ -36,6 +149,7 @@ interface SensorData {
   bgColor: string
   timestamp: Date
   tendencia: 'subiendo' | 'bajando' | 'estable'
+  bateria?: number
   historial: { fecha: Date; valor: number }[]
 }
 
@@ -47,106 +161,15 @@ interface ClimaData {
   uvIndex: number
 }
 
-// Datos simulados de sensores del campo
-const sensoresMock: SensorData[] = [
-  {
-    id: '1',
-    nombre: 'pH',
-    descripcion: 'Sensor de acidez del suelo',
-    valor: 6.8,
-    unidad: 'pH',
-    estado: 'normal',
-    tipo: 'ph',
-    rango: { min: 5.5, max: 7.5 },
-    ubicacion: 'Zona A - Fila 1',
-    icon: Sprout,
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-100 dark:bg-purple-900/20',
-    timestamp: new Date('2025-01-15T19:00:00'),
-    tendencia: 'estable',
-    historial: [
-      { fecha: new Date('2025-01-15T18:00:00'), valor: 6.7 },
-      { fecha: new Date('2025-01-15T18:30:00'), valor: 6.8 },
-      { fecha: new Date('2025-01-15T19:00:00'), valor: 6.8 }
-    ]
-  },
-  {
-    id: '2',
-    nombre: 'Humedad Tierra',
-    descripcion: 'Sensor de humedad del suelo a 15cm de profundidad',
-    valor: 65.2,
-    unidad: '%',
-    estado: 'normal',
-    tipo: 'humedad',
-    rango: { min: 50, max: 80 },
-    ubicacion: 'Zona A - Fila 2',
-    icon: Droplets,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-100 dark:bg-blue-900/20',
-    timestamp: new Date('2025-01-15T19:00:00'),
-    tendencia: 'estable',
-    historial: [
-      { fecha: new Date('2025-01-15T18:00:00'), valor: 65.0 },
-      { fecha: new Date('2025-01-15T18:30:00'), valor: 65.1 },
-      { fecha: new Date('2025-01-15T19:00:00'), valor: 65.2 }
-    ]
-  },
-  {
-    id: '3',
-    nombre: 'Temperatura del Ambiente',
-    descripcion: 'Sensor de temperatura ambiental',
-    valor: 28.5,
-    unidad: '°C',
-    estado: 'normal',
-    tipo: 'temperatura',
-    rango: { min: 20, max: 35 },
-    ubicacion: 'Zona B - Centro',
-    icon: Thermometer,
-    color: 'text-red-600',
-    bgColor: 'bg-red-100 dark:bg-red-900/20',
-    timestamp: new Date('2025-01-15T19:00:00'),
-    tendencia: 'estable',
-    historial: [
-      { fecha: new Date('2025-01-15T18:00:00'), valor: 28.3 },
-      { fecha: new Date('2025-01-15T18:30:00'), valor: 28.4 },
-      { fecha: new Date('2025-01-15T19:00:00'), valor: 28.5 }
-    ]
-  },
-  {
-    id: '4',
-    nombre: 'Luz Solar',
-    descripcion: 'Sensor de intensidad lumínica',
-    valor: 85.3,
-    unidad: '%',
-    estado: 'normal',
-    tipo: 'luz',
-    rango: { min: 70, max: 100 },
-    ubicacion: 'Zona A - Exterior',
-    icon: Sun,
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-100 dark:bg-orange-900/20',
-    timestamp: new Date('2025-01-15T19:00:00'),
-    tendencia: 'bajando',
-    historial: [
-      { fecha: new Date('2025-01-15T18:00:00'), valor: 88.2 },
-      { fecha: new Date('2025-01-15T18:30:00'), valor: 86.8 },
-      { fecha: new Date('2025-01-15T19:00:00'), valor: 85.3 }
-    ]
-  }
-]
 
-const climaMock: ClimaData = {
-  temperatura: 28.5,
-  humedad: 78,
-  velocidadViento: 12.3,
-  precipitacion: 0,
-  uvIndex: 7
-}
+
+
 
 export default function DashboardAgricultor() {
   const router = useRouter()
-  const [sensores, setSensores] = useState<SensorData[]>(sensoresMock)
-  const [clima, setClima] = useState<ClimaData>(climaMock)
+  const [sensores, setSensores] = useState<SensorData[]>([])
+  const [clima, setClima] = useState<ClimaData | null>(null)
+  const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [expandedSensors, setExpandedSensors] = useState<Set<string>>(new Set())
 
@@ -158,12 +181,53 @@ export default function DashboardAgricultor() {
       return
     }
 
-    // Simular carga de datos
-    const timer = setTimeout(() => {
-      setIsLoading(false)
-    }, 1000)
+    // Cargar datos reales de la API
+    const loadData = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
+        
+        // Cargar sensores reales
+        const sensoresData = await api.sensors.getSensors()
+        
+        // Convertir datos de la API al formato esperado por el componente
+        const sensoresFormatted: SensorData[] = sensoresData.map(sensor => {
+          const valor = getValorSensor(sensor)
+          return {
+            id: sensor.id_sensor.toString(),
+            nombre: sensor.nombre || `Sensor ${sensor.tipo}`,
+            descripcion: `Sensor de ${sensor.tipo.replace('_', ' ')}`,
+            valor: valor,
+            unidad: getUnidadPorTipo(sensor.tipo),
+            estado: sensor.activo ? 'normal' : 'critico',
+            tipo: sensor.tipo,
+            rango: getRangoPorTipo(sensor.tipo),
+            ubicacion: sensor.ubicacion_sensor || 'Sin ubicación',
+            icon: getIconoPorTipo(sensor.tipo),
+            color: getColorPorTipo(sensor.tipo),
+            bgColor: getBgColorPorTipo(sensor.tipo),
+            timestamp: new Date(sensor.ultima_lectura || Date.now()),
+            tendencia: 'estable' as const,
+            bateria: sensor.bateria_nivel || 0,
+            historial: [
+              { fecha: new Date(Date.now() - 3600000), valor: valor - 0.1 },
+              { fecha: new Date(Date.now() - 1800000), valor: valor },
+              { fecha: new Date(), valor: valor }
+            ]
+          }
+        })
+        
+        setSensores(sensoresFormatted)
+        
+      } catch (err) {
+        console.error('Error al cargar datos:', err)
+        setError('Error al cargar los datos de sensores')
+      } finally {
+        setIsLoading(false)
+      }
+    }
 
-    return () => clearTimeout(timer)
+    loadData()
   }, [router])
 
   const formatearHora = (fecha: Date) => {

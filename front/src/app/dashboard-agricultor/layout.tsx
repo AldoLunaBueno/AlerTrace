@@ -3,6 +3,7 @@
 import { SidebarAgricultor } from '@/components/dashboard/sidebar-agricultor'
 import { NotificationsDropdown } from '@/components/shared/notifications-dropdown'
 import { BottomNavAgricultor } from '@/components/mobile/bottom-nav-agricultor'
+import RouteGuard from '@/components/shared/route-guard'
 
 export default function DashboardAgricultorLayout({
   children,
@@ -10,7 +11,8 @@ export default function DashboardAgricultorLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <RouteGuard requiredUserType="trabajador" fallbackRoute="/dashboard-empresa">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="flex">
         {/* Sidebar - oculto en móvil */}
         <div className="hidden md:block">
@@ -53,5 +55,6 @@ export default function DashboardAgricultorLayout({
       {/* Bottom Navigation - solo visible en móvil */}
       <BottomNavAgricultor />
     </div>
+    </RouteGuard>
   )
 }

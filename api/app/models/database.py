@@ -35,7 +35,8 @@ class Trabajador(Base):
     
     id_trabajador = Column(Integer, primary_key=True, index=True)
     id_empresa = Column(Integer, ForeignKey("empresas.id_empresa", ondelete="CASCADE"), nullable=False)
-    dni = Column(String(8), unique=True, nullable=False, index=True)  # National ID (used as username)
+    dni = Column(String(8), unique=True, nullable=False, index=True)  # National ID 
+    email = Column(String(100), unique=True, nullable=True, index=True)  # Email for login
     nombre_completo = Column(String(200), nullable=False)
     password_hash = Column(String(255), nullable=False)
     rol = Column(String(20), default="worker", index=True)  # admin, supervisor, worker
@@ -147,6 +148,23 @@ class ConfiguracionUmbral(Base):
     # Air temperature thresholds
     temp_min = Column(DECIMAL(5, 2), default=10.0)  # °C
     temp_max = Column(DECIMAL(5, 2), default=35.0)  # °C
+
+
+# class Cultivo(Base):
+#     """Crop model - Agricultural crops managed by users"""
+#     __tablename__ = "cultivos"
+#     
+#     id_cultivo = Column(Integer, primary_key=True, index=True)
+#     id_usuario = Column(Integer, nullable=False)  # Referenced but not FK to maintain flexibility
+#     tipo_cultivo = Column(String(100), nullable=False)
+#     variedad = Column(String(100))
+#     hectareas = Column(DECIMAL(10, 2), nullable=False)
+#     fecha_siembra = Column(DateTime)
+#     fecha_estimada_cosecha = Column(DateTime)
+#     estado = Column(String(50), default="activo")  # activo, cosechado, abandado
+#     ubicacion_especifica = Column(Text)
+#     coordenadas_lat = Column(DECIMAL(10, 8))
+#     coordenadas_lng = Column(DECIMAL(11, 8))
     
     # Air humidity thresholds
     humedad_aire_min = Column(DECIMAL(5, 2), default=40.0)  # %

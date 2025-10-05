@@ -20,6 +20,7 @@ import {
   Clock,
   XCircle
 } from 'lucide-react'
+import api, { SensorData as APISensorData } from '@/lib/api'
 
 // NODO PROMPT: AREAS_GESTION - Página de gestión de áreas de producción
 
@@ -50,98 +51,7 @@ interface Sensor {
   }
 }
 
-// Datos simulados de áreas
-const areasMock: Area[] = [
-  {
-    id: '1',
-    nombre: 'Zona de Secado',
-    descripcion: 'Área principal de secado de sacha inchi',
-    color: '#3B82F6',
-    ubicacion: 'Planta Principal - Nivel 1',
-    responsable: 'Carlos Mendoza',
-    fechaCreacion: new Date('2024-01-15'),
-    estado: 'activa',
-    ultimaActividad: new Date(),
-    sensores: [
-      {
-        id: 's1',
-        nombre: 'Sensor Temperatura Principal',
-        tipo: 'temperatura',
-        unidad: '°C',
-        valorActual: 45.2,
-        estado: 'activo',
-        ultimaLectura: new Date(),
-        limites: { min: 40, max: 60 }
-      },
-      {
-        id: 's2',
-        nombre: 'Sensor Humedad Ambiente',
-        tipo: 'humedad',
-        unidad: '%',
-        valorActual: 35.8,
-        estado: 'activo',
-        ultimaLectura: new Date(),
-        limites: { min: 30, max: 50 }
-      }
-    ]
-  },
-  {
-    id: '2',
-    nombre: 'Área de Prensa',
-    descripcion: 'Zona de extracción por prensado en frío',
-    color: '#10B981',
-    ubicacion: 'Planta Principal - Nivel 2',
-    responsable: 'Ana García',
-    fechaCreacion: new Date('2024-01-20'),
-    estado: 'activa',
-    ultimaActividad: new Date(),
-    sensores: [
-      {
-        id: 's3',
-        nombre: 'Sensor Presión Prensa',
-        tipo: 'presion',
-        unidad: 'bar',
-        valorActual: 12.5,
-        estado: 'activo',
-        ultimaLectura: new Date(),
-        limites: { min: 10, max: 15 }
-      },
-      {
-        id: 's4',
-        nombre: 'Sensor pH Aceite',
-        tipo: 'ph',
-        unidad: 'pH',
-        valorActual: 6.8,
-        estado: 'activo',
-        ultimaLectura: new Date(),
-        limites: { min: 6.0, max: 7.5 }
-      }
-    ]
-  },
-  {
-    id: '3',
-    nombre: 'Almacén de Producto',
-    descripcion: 'Zona de almacenamiento y control de calidad',
-    color: '#F59E0B',
-    ubicacion: 'Planta Principal - Nivel 0',
-    responsable: 'Luis Rodríguez',
-    fechaCreacion: new Date('2024-02-01'),
-    estado: 'mantenimiento',
-    ultimaActividad: new Date(Date.now() - 2 * 60 * 60 * 1000),
-    sensores: [
-      {
-        id: 's5',
-        nombre: 'Sensor Temperatura Almacén',
-        tipo: 'temperatura',
-        unidad: '°C',
-        valorActual: 22.1,
-        estado: 'inactivo',
-        ultimaLectura: new Date(Date.now() - 2 * 60 * 60 * 1000),
-        limites: { min: 18, max: 25 }
-      }
-    ]
-  }
-]
+
 
 const estadosArea = {
   activa: {
@@ -175,7 +85,9 @@ const tiposSensor = {
 }
 
 export default function AreasEmpresaPage() {
-  const [areas, setAreas] = useState<Area[]>(areasMock)
+  const [areas, setAreas] = useState<Area[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [filtroEstado, setFiltroEstado] = useState<string>('todos')
   const [busqueda, setBusqueda] = useState('')
   const [mostrarModal, setMostrarModal] = useState(false)
@@ -191,11 +103,93 @@ export default function AreasEmpresaPage() {
     return coincideEstado && coincideBusqueda
   })
 
-  // API Functions (deshabilitadas por ahora)
+  // Cargar datos reales de sensores y crear áreas basadas en ubicaciones
   const fetchAreas = async () => {
-    // TODO: Implementar llamada a API
-    console.log('API: Fetching areas...')
+    try {
+      setLoading(true)
+      setError(null)
+      
+      const sensoresData = await api.sensors.getSensors()
+      
+      // Agrupar sensores por ubicación para crear áreas
+      const areasMap = new Map<string, Area>()
+      
+      sensoresData.forEach((sensor: APISensorData) => {
+        const ubicacion = sensor.ubicacion || 'Área General'
+        const areaId = ubicacion.toLowerCase().replace(/\s+/g, '-')
+        
+        if (!areasMap.has(areaId)) {
+          areasMap.set(areaId, {
+            id: areaId,
+            nombre: ubicacion,
+            descripcion: `Área de monitoreo - ${ubicacion}`,
+            color: '#3B82F6', // Color por defecto
+            ubicacion: ubicacion,
+            responsable: 'Por asignar',
+            fechaCreacion: new Date(),
+            estado: 'activa',
+            ultimaActividad: new Date(),
+            sensores: []
+          })
+        }
+        
+        const area = areasMap.get(areaId)!
+        area.sensores.push({
+          id: sensor.id.toString(),
+          nombre: sensor.nombre || `Sensor ${sensor.tipo}`,
+          tipo: sensor.tipo as 'temperatura' | 'humedad' | 'ph' | 'presion' | 'flujo' | 'nivel' | 'personalizado',
+          unidad: getUnidadPorTipo(sensor.tipo),
+          valorActual: getValorSensor(sensor),
+          estado: sensor.estado === 'activo' ? 'activo' : 'inactivo',
+          ultimaLectura: new Date(),
+          limites: getRangoPorTipo(sensor.tipo)
+        })
+      })
+      
+      setAreas(Array.from(areasMap.values()))
+    } catch (err) {
+      console.error('Error al cargar áreas:', err)
+      setError('Error al cargar las áreas')
+    } finally {
+      setLoading(false)
+    }
   }
+
+  // Funciones helper
+  const getValorSensor = (sensor: APISensorData): number => {
+    switch (sensor.tipo) {
+      case 'temperatura': return sensor.temperatura || 0
+      case 'humedad': return sensor.humedad_aire || sensor.humedad_suelo || 0
+      case 'ph': return sensor.ph || 7
+      case 'nutrientes': return sensor.nutrientes || 0
+      default: return 0
+    }
+  }
+
+  const getUnidadPorTipo = (tipo: string): string => {
+    switch (tipo) {
+      case 'temperatura': return '°C'
+      case 'humedad': return '%'
+      case 'ph': return 'pH'
+      case 'nutrientes': return 'ppm'
+      default: return ''
+    }
+  }
+
+  const getRangoPorTipo = (tipo: string): { min: number; max: number } => {
+    switch (tipo) {
+      case 'temperatura': return { min: 15, max: 35 }
+      case 'humedad': return { min: 40, max: 80 }
+      case 'ph': return { min: 5.5, max: 7.5 }
+      case 'nutrientes': return { min: 100, max: 500 }
+      default: return { min: 0, max: 100 }
+    }
+  }
+
+  // Cargar datos al montar el componente
+  useEffect(() => {
+    fetchAreas()
+  }, [])
 
   const createArea = async (areaData: Partial<Area>) => {
     // TODO: Implementar creación de área

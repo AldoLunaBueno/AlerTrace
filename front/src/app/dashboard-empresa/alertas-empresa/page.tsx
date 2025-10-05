@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { 
   AlertTriangle, 
   CheckCircle, 
@@ -18,6 +18,7 @@ import {
   Eye,
   CheckCircle2
 } from 'lucide-react'
+import api, { AlertaData } from '@/lib/api'
 
 interface Alerta {
   id: string
@@ -34,79 +35,7 @@ interface Alerta {
   limite?: number
 }
 
-// Datos simulados de alertas
-const alertasMock: Alerta[] = [
-  {
-    id: '1',
-    tipo: 'critica',
-    titulo: 'Temperatura crítica en secador principal',
-    descripcion: 'La temperatura del secador principal ha excedido el límite crítico de 60°C',
-    equipo: 'Secador Principal',
-    ubicacion: 'Área de Secado - Nivel 2',
-    fechaHora: new Date('2025-01-15T19:00:00'),
-    leida: false,
-    variable: 'Temperatura Aire',
-    valor: 62.3,
-    unidad: '°C',
-    limite: 60
-  },
-  {
-    id: '2',
-    tipo: 'advertencia',
-    titulo: 'Humedad producto alta',
-    descripcion: 'La humedad del producto está por encima del rango óptimo',
-    equipo: 'Secador Secundario',
-    ubicacion: 'Área de Secado - Nivel 1',
-    fechaHora: new Date('2025-01-15T18:30:00'),
-    leida: false,
-    variable: 'Humedad Producto',
-    valor: 9.8,
-    unidad: '%',
-    limite: 9
-  },
-  {
-    id: '3',
-    tipo: 'critica',
-    titulo: 'Presión excesiva en prensa',
-    descripcion: 'La presión de la prensa cold-press ha superado los límites de seguridad',
-    equipo: 'Prensa Cold-Press',
-    ubicacion: 'Área de Extracción',
-    fechaHora: new Date('2025-01-15T17:00:00'),
-    leida: true,
-    variable: 'Presión Prensa',
-    valor: 320.5,
-    unidad: 'bar',
-    limite: 300
-  },
-  {
-    id: '4',
-    tipo: 'info',
-    titulo: 'Mantenimiento programado',
-    descripcion: 'Mantenimiento preventivo programado para el equipo de filtración',
-    equipo: 'Sistema de Filtración',
-    ubicacion: 'Área de Procesamiento',
-    fechaHora: new Date('2025-01-15T15:00:00'),
-    leida: true,
-    variable: 'Estado Equipo',
-    valor: 100,
-    unidad: '%',
-    limite: 100
-  },
-  {
-    id: '5',
-    tipo: 'exito',
-    titulo: 'Lote completado exitosamente',
-    descripcion: 'El lote LOT-2024-015 ha sido procesado sin incidencias',
-    equipo: 'Línea de Producción',
-    ubicacion: 'Área de Empaque',
-    fechaHora: new Date('2025-01-15T14:30:00'),
-    leida: true,
-    variable: 'Lotes Procesados',
-    valor: 15,
-    unidad: 'unidades',
-    limite: 20
-  }
-]
+
 
 const tiposAlerta = {
   critica: {
@@ -136,10 +65,78 @@ const tiposAlerta = {
 }
 
 export default function AlertasEmpresaPage() {
-  const [alertas, setAlertas] = useState<Alerta[]>(alertasMock)
+  const [alertas, setAlertas] = useState<Alerta[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [filtroTipo, setFiltroTipo] = useState<string>('todos')
   const [filtroLeidas, setFiltroLeidas] = useState<string>('todos')
   const [busqueda, setBusqueda] = useState('')
+
+  // Cargar alertas desde la API
+  useEffect(() => {
+    const loadAlertas = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        
+        const alertasData = await api.alertas.getAlertas()
+        
+        // Convertir datos de la API
+        const alertasFormatted: Alerta[] = alertasData.map(alerta => ({
+          id: alerta.id.toString(),
+          tipo: mapSeveridadToTipo(alerta.severidad),
+          titulo: generateTitulo(alerta),
+          descripcion: alerta.mensaje,
+          equipo: getEquipoFromSensor(alerta.sensor_id),
+          ubicacion: 'Área de Producción', // Por defecto
+          fechaHora: new Date(alerta.fecha_creacion),
+          leida: alerta.estado === 'vista' || alerta.estado === 'resuelta',
+          variable: alerta.tipo,
+          valor: 0, // No disponible en la API
+          unidad: getUnidadByType(alerta.tipo),
+          limite: 0 // No disponible en la API
+        }))
+        
+        setAlertas(alertasFormatted)
+      } catch (err) {
+        console.error('Error al cargar alertas:', err)
+        setError('Error al cargar las alertas')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadAlertas()
+  }, [])
+
+  // Funciones helper para convertir datos
+  const mapSeveridadToTipo = (severidad: string): 'critica' | 'advertencia' | 'info' | 'exito' => {
+    switch (severidad) {
+      case 'critica': return 'critica'
+      case 'alta': return 'critica'
+      case 'media': return 'advertencia'
+      case 'baja': return 'info'
+      default: return 'info'
+    }
+  }
+
+  const generateTitulo = (alerta: AlertaData): string => {
+    return `Alerta de ${alerta.tipo}${alerta.sensor_id ? ` - Sensor ${alerta.sensor_id}` : ''}`
+  }
+
+  const getEquipoFromSensor = (sensorId?: number): string => {
+    return sensorId ? `Sensor ${sensorId}` : 'Equipo no identificado'
+  }
+
+  const getUnidadByType = (tipo: string): string => {
+    switch (tipo) {
+      case 'temperatura': return '°C'
+      case 'humedad': return '%'
+      case 'ph': return 'pH'
+      case 'nutrientes': return 'ppm'
+      default: return ''
+    }
+  }
 
   const alertasFiltradas = alertas.filter(alerta => {
     const coincideTipo = filtroTipo === 'todos' || alerta.tipo === filtroTipo
@@ -161,14 +158,57 @@ export default function AlertasEmpresaPage() {
     advertencias: alertas.filter(a => a.tipo === 'advertencia').length
   }
 
-  const marcarComoLeida = (id: string) => {
-    setAlertas(alertas.map(alerta => 
-      alerta.id === id ? { ...alerta, leida: true } : alerta
-    ))
+  const marcarComoLeida = async (id: string) => {
+    try {
+      await api.alertas.resolveAlerta(parseInt(id))
+      setAlertas(alertas.map(alerta => 
+        alerta.id === id ? { ...alerta, leida: true } : alerta
+      ))
+    } catch (err) {
+      console.error('Error al marcar alerta como leída:', err)
+    }
   }
 
   const marcarTodasComoLeidas = () => {
     setAlertas(alertas.map(alerta => ({ ...alerta, leida: true })))
+  }
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="mt-4 text-gray-600">Cargando alertas...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="text-red-600 mb-4">⚠️</div>
+              <p className="text-red-600">{error}</p>
+              <button 
+                onClick={() => window.location.reload()} 
+                className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+              >
+                Reintentar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (

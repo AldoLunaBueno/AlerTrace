@@ -1,7 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Bell, AlertTriangle, CheckCircle, Info } from 'lucide-react'
+import { api } from '@/lib/api'
+import type { AlertaResponse } from '@/types'
 
 interface Notification {
   id: string
@@ -18,51 +20,147 @@ interface NotificationsDropdownProps {
 
 export function NotificationsDropdown({ userType }: NotificationsDropdownProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const [notifications] = useState<Notification[]>(userType === 'agricultor' ? [
-    {
-      id: '1',
-      title: 'Alerta Crítica: Temperatura Alta',
-      message: 'Temperatura del aire alcanzó 32°C en Campo Norte - Requiere atención inmediata',
-      type: 'warning',
-      timestamp: new Date(Date.now() - 1000 * 60 * 15), // 15 min ago
-      read: false
-    },
-    {
-      id: '2',
-      title: 'Humedad del Suelo Baja',
-      message: 'Humedad del suelo en Sector A está en 15% VWC - Considerar riego',
-      type: 'warning',
-      timestamp: new Date(Date.now() - 1000 * 60 * 45), // 45 min ago
-      read: false
-    },
-    {
-      id: '3',
-      title: 'Índice UV Alto',
-      message: 'Índice UV actual: 8 - Evitar labores de campo en horas pico',
-      type: 'info',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 1), // 1 hour ago
-      read: false
-    },
-  ] : [
-    {
-      id: '1',
-      title: 'Sensor Desconectado',
-      message: 'El sensor de temperatura en Zona A está offline',
-      type: 'warning',
-      timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 min ago
-      read: false
-    },
-    {
-      id: '3',
-      title: 'Mantenimiento Programado',
-      message: 'Recordatorio: Mantenimiento de equipos mañana a las 8:00 AM',
-      type: 'info',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-      read: true
+  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [loading, setLoading] = useState(true)
+  const [readNotifications, setReadNotifications] = useState<Set<string>>(new Set())
+
+  useEffect(() => {
+    // Cargar notificaciones leídas del localStorage al inicio
+    const savedReadNotifications = localStorage.getItem(`readNotifications_${userType}`)
+    const readNotificationsSet = savedReadNotifications 
+      ? new Set<string>(JSON.parse(savedReadNotifications) as string[])
+      : new Set<string>()
+    
+    setReadNotifications(readNotificationsSet)
+
+    const fetchNotifications = async (currentReadNotifications: Set<string>) => {
+      try {
+        const alertas: AlertaResponse[] = await api.alertas.getAlertas()
+        
+        // Convertir las alertas más recientes (últimas 10) a notificaciones
+        // Solo mostrar alertas no resueltas
+        const recentAlertas = alertas
+          .filter(alerta => !alerta.resuelta)
+          .sort((a: AlertaResponse, b: AlertaResponse) => new Date(b.fecha_creacion).getTime() - new Date(a.fecha_creacion).getTime())
+          .slice(0, 10)
+        
+        const notificationsFromAlertas: Notification[] = recentAlertas.map((alerta: AlertaResponse) => ({
+          id: alerta.id_alerta.toString(),
+          title: alerta.titulo,
+          message: alerta.mensaje,
+          type: alerta.severidad === 'critica' ? 'warning' : alerta.severidad === 'alta' ? 'warning' : 'info',
+          timestamp: new Date(alerta.fecha_creacion),
+          read: currentReadNotifications.has(alerta.id_alerta.toString()) // Usar el Set actualizado
+        }))
+        
+        setNotifications(notificationsFromAlertas)
+      } catch (error) {
+        console.error('Error fetching notifications:', error)
+        setNotifications([])
+      } finally {
+        setLoading(false)
+      }
     }
-  ])
+
+    fetchNotifications(readNotificationsSet)
+    
+    // Actualizar notificaciones cada 30 segundos usando el estado actual de readNotifications
+    const interval = setInterval(() => {
+      const currentSavedReadNotifications = localStorage.getItem(`readNotifications_${userType}`)
+      const currentReadNotificationsSet = currentSavedReadNotifications 
+        ? new Set<string>(JSON.parse(currentSavedReadNotifications) as string[])
+        : new Set<string>()
+      fetchNotifications(currentReadNotificationsSet)
+    }, 30000)
+    
+    return () => clearInterval(interval)
+  }, [userType])
 
   const unreadCount = notifications.filter(n => !n.read).length
+
+  const markAsRead = (notificationId: string) => {
+    const newReadNotifications = new Set(readNotifications)
+    newReadNotifications.add(notificationId)
+    setReadNotifications(newReadNotifications)
+    
+    // Guardar en localStorage
+    localStorage.setItem(`readNotifications_${userType}`, JSON.stringify(Array.from(newReadNotifications)))
+    
+    // Actualizar el estado de la notificación
+    setNotifications(prev => prev.map(notification => 
+      notification.id === notificationId 
+        ? { ...notification, read: true }
+        : notification
+    ))
+  }
+
+  const markAllAsRead = () => {
+    const allIds = notifications.map(n => n.id)
+    const newReadNotifications = new Set(Array.from(readNotifications).concat(allIds))
+    setReadNotifications(newReadNotifications)
+    
+    // Guardar en localStorage
+    localStorage.setItem(`readNotifications_${userType}`, JSON.stringify(Array.from(newReadNotifications)))
+    
+    // Actualizar todas las notificaciones como leídas
+    setNotifications(prev => prev.map(notification => ({ ...notification, read: true })))
+  }
+
+  const resolveAlert = async (notificationId: string) => {
+    try {
+      const response = await api.alertas.resolveAlerta(parseInt(notificationId))
+      
+      // Remover la notificación de la lista ya que ahora está resuelta
+      setNotifications(prev => prev.filter(notification => notification.id !== notificationId))
+      
+      // También remover del localStorage de leídas
+      const newReadNotifications = new Set(Array.from(readNotifications))
+      newReadNotifications.delete(notificationId)
+      setReadNotifications(newReadNotifications)
+      localStorage.setItem(`readNotifications_${userType}`, JSON.stringify(Array.from(newReadNotifications)))
+      
+      // Actualizar inmediatamente las notificaciones desde la API
+      setTimeout(async () => {
+        try {
+          const alertas: AlertaResponse[] = await api.alertas.getAlertas()
+          const currentSavedReadNotifications = localStorage.getItem(`readNotifications_${userType}`)
+          const currentReadNotificationsSet = currentSavedReadNotifications 
+            ? new Set<string>(JSON.parse(currentSavedReadNotifications) as string[])
+            : new Set<string>()
+          
+          const recentAlertas = alertas
+            .filter(alerta => !alerta.resuelta)
+            .sort((a: AlertaResponse, b: AlertaResponse) => new Date(b.fecha_creacion).getTime() - new Date(a.fecha_creacion).getTime())
+            .slice(0, 10)
+          
+          const notificationsFromAlertas: Notification[] = recentAlertas.map((alerta: AlertaResponse) => ({
+            id: alerta.id_alerta.toString(),
+            title: alerta.titulo,
+            message: alerta.mensaje,
+            type: alerta.severidad === 'critica' ? 'warning' : alerta.severidad === 'alta' ? 'warning' : 'info',
+            timestamp: new Date(alerta.fecha_creacion),
+            read: currentReadNotificationsSet.has(alerta.id_alerta.toString())
+          }))
+          
+          setNotifications(notificationsFromAlertas)
+          
+          // Mostrar mensaje si el problema persiste
+          if (response && typeof response === 'object' && 'problema_persiste' in response) {
+            if (response.problema_persiste) {
+              // Podrías mostrar una notificación toast aquí
+              console.info('Se detectó que el problema persiste. Se ha generado una nueva alerta.')
+            }
+          }
+          
+        } catch (error) {
+          console.error('Error refreshing notifications:', error)
+        }
+      }, 1000) // Esperar 1 segundo para que la API procese la nueva alerta si es necesario
+      
+    } catch (error) {
+      console.error('Error resolving alert:', error)
+    }
+  }
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -130,16 +228,31 @@ export function NotificationsDropdown({ userType }: NotificationsDropdownProps) 
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                   Notificaciones
                 </h3>
-                {unreadCount > 0 && (
-                  <span className="bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400 text-xs px-2 py-1 rounded-full">
-                    {unreadCount} sin leer
-                  </span>
-                )}
+                <div className="flex items-center space-x-2">
+                  {unreadCount > 0 && (
+                    <>
+                      <button
+                        onClick={markAllAsRead}
+                        className="text-xs text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300"
+                      >
+                        Marcar todas como leídas
+                      </button>
+                      <span className="bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400 text-xs px-2 py-1 rounded-full">
+                        {unreadCount} sin leer
+                      </span>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
             
             <div className="max-h-96 overflow-y-auto">
-              {notifications.length === 0 ? (
+              {loading ? (
+                <div className="p-4 text-center text-gray-500 dark:text-gray-400">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600 dark:border-green-400 mx-auto"></div>
+                  <p className="mt-2 text-sm">Cargando notificaciones...</p>
+                </div>
+              ) : notifications.length === 0 ? (
                 <div className="p-4 text-center text-gray-500 dark:text-gray-400">
                   No hay notificaciones
                 </div>
@@ -148,7 +261,7 @@ export function NotificationsDropdown({ userType }: NotificationsDropdownProps) 
                   {notifications.map((notification) => (
                     <div
                       key={notification.id}
-                      className={`p-4 hover:bg-white dark:hover:bg-gray-800 transition-colors ${
+                      className={`p-4 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors ${
                         !notification.read ? 'bg-gray-100 dark:bg-gray-800/50' : ''
                       }`}
                     >
@@ -174,9 +287,33 @@ export function NotificationsDropdown({ userType }: NotificationsDropdownProps) 
                           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                             {notification.message}
                           </p>
-                          <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
-                            {formatTimestamp(notification.timestamp)}
-                          </p>
+                          <div className="flex items-center justify-between mt-2">
+                            <p className="text-xs text-gray-400 dark:text-gray-500">
+                              {formatTimestamp(notification.timestamp)}
+                            </p>
+                            <div className="flex items-center space-x-2">
+                              {!notification.read && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    markAsRead(notification.id)
+                                  }}
+                                  className="text-xs text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 px-2 py-1 rounded"
+                                >
+                                  Marcar leída
+                                </button>
+                              )}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  resolveAlert(notification.id)
+                                }}
+                                className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 px-2 py-1 rounded"
+                              >
+                                Resolver
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>

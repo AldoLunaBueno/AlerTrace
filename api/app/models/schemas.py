@@ -158,6 +158,20 @@ class UserInfo(BaseModel):
     user_id: str
     username: str
     role: str
+    nombre: Optional[str] = None
+    email: Optional[str] = None
+    telefono: Optional[str] = None
+    user_type: str = "trabajador"  # "trabajador" o "empresa"
+    
+    # Campos específicos para trabajadores
+    dni: Optional[str] = None
+    
+    # Campos específicos para empresas
+    ruc: Optional[str] = None
+    tipo_empresa: Optional[str] = None
+    
+    # Campos comunes
+    fecha_registro: Optional[str] = None
 
 
 # Modelos para CRUD de cultivos
@@ -218,3 +232,49 @@ class UserUpdate(BaseModel):
     email: Optional[str] = None
     rol: Optional[str] = None
     activo: Optional[bool] = None
+
+
+# Modelos para alertas
+class AlertaCreate(BaseModel):
+    """Modelo para crear una nueva alerta"""
+    id_sensor: int
+    tipo: str  # temperatura, humedad, ph, etc.
+    mensaje: str
+    severidad: str  # baja, media, alta, critica
+    valor_medido: Optional[float] = None
+    umbral_configurado: Optional[float] = None
+
+
+class AlertaUpdate(BaseModel):
+    """Modelo para actualizar una alerta"""
+    estado: Optional[str] = None
+    fecha_resolucion: Optional[datetime] = None
+
+
+class AlertaResponse(BaseModel):
+    """Modelo de respuesta para alertas"""
+    id_alerta: int
+    id_sensor: int
+    tipo: str
+    mensaje: str
+    severidad: str
+    valor_medido: Optional[float]
+    umbral_configurado: Optional[float]
+    estado: str
+    fecha_creacion: datetime
+    fecha_resolucion: Optional[datetime]
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+# Modelos para dashboard
+class DashboardKPIs(BaseModel):
+    """KPIs del dashboard"""
+    sensores_activos: int
+    cultivos_monitoreados: int
+    alertas_pendientes: int
+    ultima_actualizacion: str
+    temperaturas_promedio: Optional[float] = None
+    humedad_promedio: Optional[float] = None
+    areas_bajo_monitoreo: Optional[float] = None
+    produccion_estimada: Optional[float] = None

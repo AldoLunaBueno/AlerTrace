@@ -3,6 +3,7 @@
 import { SidebarEmpresa } from '@/components/dashboard/sidebar-empresa'
 import { NotificationsDropdown } from '@/components/shared/notifications-dropdown'
 import { BottomNavEmpresa } from '@/components/mobile/bottom-nav-empresa'
+import RouteGuard from '@/components/shared/route-guard'
 
 export default function DashboardEmpresaLayout({
   children,
@@ -10,7 +11,8 @@ export default function DashboardEmpresaLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <RouteGuard requiredUserType="empresa" fallbackRoute="/dashboard-agricultor">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="flex">
         {/* Sidebar - oculto en móvil */}
         <div className="hidden md:block">
@@ -53,5 +55,6 @@ export default function DashboardEmpresaLayout({
       {/* Bottom Navigation - solo visible en móvil */}
       <BottomNavEmpresa />
     </div>
+    </RouteGuard>
   )
 }
