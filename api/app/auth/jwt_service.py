@@ -48,12 +48,23 @@ class JWTService:
     @staticmethod
     def hash_password(password: str) -> str:
         """Generate secure password hash using bcrypt"""
+        # Truncar password a 72 bytes para bcrypt
+        if len(password.encode('utf-8')) > 72:
+            password = password.encode('utf-8')[:72].decode('utf-8', errors='ignore')
         return pwd_context.hash(password)
 
     @staticmethod
     def verify_password(plain_password: str, hashed_password: str) -> bool:
         """Verify if password matches its hash"""
-        return pwd_context.verify(plain_password, hashed_password)
+        try:
+            # Truncar password a 72 bytes para bcrypt
+            if len(plain_password.encode('utf-8')) > 72:
+                plain_password = plain_password.encode('utf-8')[:72].decode('utf-8', errors='ignore')
+            return pwd_context.verify(plain_password, hashed_password)
+        except:
+            # Fallback para hashes SHA256 (temporalmente para usuarios demo)
+            import hashlib
+            return hashlib.sha256(plain_password.encode()).hexdigest() == hashed_password
 
 # Global service instance
 jwt_service = JWTService()
