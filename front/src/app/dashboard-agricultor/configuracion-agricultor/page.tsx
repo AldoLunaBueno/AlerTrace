@@ -57,7 +57,6 @@ export default function ConfiguracionAgricultorPage() {
         const userData = response as any
         
         // Convertir datos de la API al formato esperado
-        console.log('📊 Datos recibidos de la API:', userData)
         setPerfil({
           nombre: userData.nombre || 'Usuario',
           email: userData.email || '',

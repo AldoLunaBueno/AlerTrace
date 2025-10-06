@@ -112,13 +112,10 @@ export default function AreasEmpresaPage() {
   // Cargar datos reales de sensores y crear áreas basadas en ubicaciones
   const cargarDatos = async () => {
     try {
-      console.log('🔄 Cargando datos de sensores...')
       const response = await api.sensors.getSensors() as any
-      console.log('📡 Respuesta de la API:', response)
       
       if (response && Array.isArray(response)) {
         const sensoresData = response as APISensorData[]
-        console.log('📊 Datos de sensores procesados:', sensoresData.length, 'sensores')
         
         // Procesar datos para el mapa de áreas
         const areasMap = new Map()
@@ -155,14 +152,11 @@ export default function AreasEmpresaPage() {
         })
         
         const areasArray = Array.from(areasMap.values())
-        console.log('🗺️ Áreas creadas:', areasArray.length, 'áreas')
         setAreas(areasArray)
       } else {
-        console.warn('⚠️ No se recibieron datos válidos de la API')
         setError('No se pudieron cargar los sensores')
       }
     } catch (error) {
-      console.error('❌ Error al cargar áreas:', error)
       setError('Error al cargar las áreas')
     } finally {
       setLoading(false)
