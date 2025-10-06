@@ -53,21 +53,23 @@ export default function ConfiguracionAgricultorPage() {
         setLoading(true)
         setError(null)
         
-        const userData = await api.auth.getCurrentUser()
+        const response = await api.auth.getMe()
+        const userData = response as any
         
         // Convertir datos de la API al formato esperado
+        console.log('📊 Datos recibidos de la API:', userData)
         setPerfil({
           nombre: userData.nombre || 'Usuario',
           email: userData.email || '',
           telefono: userData.telefono || '',
-          direccion: userData.direccion || '',
-          ciudad: userData.ciudad || '',
-          region: userData.region || '',
-          tipoCultivo: userData.tipo_cultivo || 'Sacha Inchi',
-          areaTotal: userData.area_total || 0,
-          fechaRegistro: userData.fecha_registro || new Date().toISOString().split('T')[0],
-          latitud: userData.latitud,
-          longitud: userData.longitud
+          direccion: userData.direccion || '', // Campo no disponible en API actual
+          ciudad: userData.ciudad || '', // Campo no disponible en API actual
+          region: userData.region || '', // Campo no disponible en API actual
+          tipoCultivo: userData.tipo_cultivo || 'Sacha Inchi', // Campo no disponible en API actual
+          areaTotal: userData.area_total || 0, // Campo no disponible en API actual
+          fechaRegistro: userData.fecha_registro ? new Date(userData.fecha_registro).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+          latitud: userData.latitud || null, // Campo no disponible en API actual
+          longitud: userData.longitud || null // Campo no disponible en API actual
         })
       } catch (err) {
         console.error('Error al cargar datos del usuario:', err)
