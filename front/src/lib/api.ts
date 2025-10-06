@@ -53,18 +53,37 @@ export interface EquipoStatus {
   alertasCount: number
 }
 
-// Función para hacer requests con manejo de errores
+// Función para hacer requests con manejo de errores y autenticación automática
 async function apiRequest<T>(url: string, options?: RequestInit): Promise<T> {
   try {
+    // Obtener token del localStorage si existe
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+    
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    }
+    
+    // Agregar headers adicionales si existen
+    if (options?.headers) {
+      Object.assign(headers, options.headers)
+    }
+    
+    // Agregar Authorization header si hay token
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`
+    }
+    
     const response = await fetch(url, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers,
-      },
+      headers,
       ...options,
     })
 
     if (!response.ok) {
+      // Si el token es inválido, limpiar localStorage
+      if (response.status === 401 && token) {
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+      }
       throw new Error(`HTTP error! status: ${response.status}`)
     }
 

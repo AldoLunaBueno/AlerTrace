@@ -60,16 +60,28 @@ async def receive_sensor_data(
     }
 
 @router.get("/", response_model=List[SensorResponse])
-async def obtener_sensores_trabajador(
-    trabajador: Trabajador = Depends(get_current_user),
+async def obtener_sensores(
+    current_user = Depends(get_current_user),
     db: Session = Depends(get_db),
     activo: Optional[bool] = None
 ):
-    """Obtener lista de sensores asignados al trabajador"""
-    query = db.query(Sensor).join(AsignacionSensor).filter(
-        AsignacionSensor.id_trabajador == trabajador.id_trabajador,
-        AsignacionSensor.activa == True
-    )
+    """Obtener lista de sensores según el tipo de usuario"""
+    if isinstance(current_user, Trabajador):
+        # Para trabajadores: solo sensores asignados
+        query = db.query(Sensor).join(AsignacionSensor).filter(
+            AsignacionSensor.id_trabajador == current_user.id_trabajador,
+            AsignacionSensor.activa == True
+        )
+    elif isinstance(current_user, Empresa):
+        # Para empresas: todos los sensores de sus trabajadores
+        query = db.query(Sensor).join(AsignacionSensor).join(Trabajador).filter(
+            Trabajador.id_empresa == current_user.id_empresa
+        )
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Tipo de usuario no válido"
+        )
     
     if activo is not None:
         query = query.filter(Sensor.activo == activo)
@@ -80,16 +92,26 @@ async def obtener_sensores_trabajador(
 
 @router.get("/with-readings")
 async def get_sensores_with_readings(
-    trabajador: Trabajador = Depends(get_current_user),
+    current_user = Depends(get_current_user),
     db: Session = Depends(get_db),
     activo: Optional[bool] = None
 ):
     """Obtener lista de sensores con sus lecturas más recientes"""
-    # Obtener sensores asignados al trabajador
-    query = db.query(Sensor).join(AsignacionSensor).filter(
-        AsignacionSensor.id_trabajador == trabajador.id_trabajador,
-        AsignacionSensor.activa == True
-    )
+    # Obtener sensores según tipo de usuario
+    if isinstance(current_user, Trabajador):
+        query = db.query(Sensor).join(AsignacionSensor).filter(
+            AsignacionSensor.id_trabajador == current_user.id_trabajador,
+            AsignacionSensor.activa == True
+        )
+    elif isinstance(current_user, Empresa):
+        query = db.query(Sensor).join(AsignacionSensor).join(Trabajador).filter(
+            Trabajador.id_empresa == current_user.id_empresa
+        )
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Tipo de usuario no válido"
+        )
     
     if activo is not None:
         query = query.filter(Sensor.activo == activo)
