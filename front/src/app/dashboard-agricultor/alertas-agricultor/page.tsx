@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { AlertTriangle, CheckCircle, XCircle, Bell, Filter, Search, Eye, EyeOff, Settings, RefreshCw, Thermometer, Droplets, Sun, Sprout, Wind } from 'lucide-react'
-import api from '@/lib/api'
+import { api } from '@/lib/api'
 import type { AlertaResponse } from '@/types'
 
 interface AlertaAgricultor {

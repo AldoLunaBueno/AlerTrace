@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Plus, Mail, Phone, Edit, Trash2, CreditCard, Lock, X } from 'lucide-react'
-import api from '@/lib/api'
+import { api } from '@/lib/api'
 
 interface PersonalUser {
   id: string

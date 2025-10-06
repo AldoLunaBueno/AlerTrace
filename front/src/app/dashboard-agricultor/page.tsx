@@ -20,8 +20,7 @@ import {
   AlertCircle,
   Zap
 } from 'lucide-react'
-import api from '@/lib/api'
-import type { SensorData as APISensorData } from '@/lib/api'
+import { api, SensorData as APISensorData } from '@/lib/api'
 
 // Funciones helper para convertir datos de la API
 const getValorSensor = (sensor: APISensorData): number => {

@@ -389,8 +389,8 @@ export default function LoginPage() {
             </h3>
             <div className={`text-xs ${colors.primaryText} space-y-1`}>
               <div><strong>Industria:</strong> admin@agrotech.com / secret123</div>
-              <div><strong>Agricultor Admin:</strong> juan@agrosacha.pe / password123</div>
-              <div><strong>Agricultor Worker:</strong> maria@agrosacha.pe / password123</div>
+              <div><strong>Agricultor Admin:</strong> juan@agrosacha.pe / secret123</div>
+              <div><strong>Agricultor Worker:</strong> maria@agrosacha.pe / secret123</div>
             </div>
           </div>
 

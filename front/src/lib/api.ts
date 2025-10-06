@@ -1,6 +1,6 @@
 // Servicio de API para conectar con las APIs reales
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3002'
-const WRITE_API_URL = process.env.NEXT_PUBLIC_WRITE_API_URL || 'http://localhost:3001'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8002'
+const WRITE_API_URL = process.env.NEXT_PUBLIC_WRITE_API_URL || 'http://localhost:8002'
 
 export interface KpiData {
   rendimientoExtraccion: number
@@ -378,3 +378,66 @@ export const writeApi = {
   }
 }
 
+// Exportación principal para compatibilidad
+export const api = {
+  ...readApi,
+  ...writeApi,
+  // Métodos de autenticación
+  auth: {
+    async login(username: string, password: string) {
+      return apiRequest(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        body: JSON.stringify({ username, password })
+      })
+    },
+    
+    async getMe() {
+      return apiRequest(`${API_BASE_URL}/auth/me`)
+    },
+    
+    async verifyToken() {
+      return apiRequest(`${API_BASE_URL}/auth/verify-token`)
+    }
+  },
+  
+  // Métodos de alertas
+  alertas: {
+    async getAlertas() {
+      return apiRequest(`${API_BASE_URL}/alertas`)
+    },
+    
+    async resolveAlerta(id: string) {
+      return apiRequest(`${API_BASE_URL}/alertas/${id}/resolve`, {
+        method: 'POST'
+      })
+    },
+    
+    async markAsRead(id: string) {
+      return apiRequest(`${API_BASE_URL}/alertas/${id}/read`, {
+        method: 'POST'
+      })
+    }
+  },
+  
+  // Métodos de dashboard
+  dashboard: {
+    async getTrabajadores() {
+      return apiRequest(`${API_BASE_URL}/dashboard/trabajadores`)
+    },
+    
+    async getKpis() {
+      return apiRequest(`${API_BASE_URL}/dashboard/kpis`)
+    }
+  },
+  
+  // Métodos de sensores
+  sensors: {
+    async getSensors() {
+      return apiRequest(`${API_BASE_URL}/sensores`)
+    },
+    
+    async getSensorData(sensorId: string) {
+      return apiRequest(`${API_BASE_URL}/sensores/${sensorId}/lecturas`)
+    }
+  }
+}

@@ -20,7 +20,7 @@ import {
   Clock,
   XCircle
 } from 'lucide-react'
-import api, { SensorData as APISensorData } from '@/lib/api'
+import { api, SensorData as APISensorData } from '@/lib/api'
 
 // NODO PROMPT: AREAS_GESTION - Página de gestión de áreas de producción
 

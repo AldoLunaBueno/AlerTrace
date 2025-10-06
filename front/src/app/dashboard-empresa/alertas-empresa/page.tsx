@@ -18,7 +18,7 @@ import {
   Eye,
   CheckCircle2
 } from 'lucide-react'
-import api, { AlertaData } from '@/lib/api'
+import { api, AlertaData } from '@/lib/api'
 
 interface Alerta {
   id: string
