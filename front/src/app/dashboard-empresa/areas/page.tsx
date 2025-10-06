@@ -82,7 +82,12 @@ const tiposSensor = {
   presion: { icon: BarChart3, color: 'text-purple-500' },
   flujo: { icon: Zap, color: 'text-yellow-500' },
   nivel: { icon: BarChart3, color: 'text-indigo-500' },
-  personalizado: { icon: Settings, color: 'text-gray-500' }
+  personalizado: { icon: Settings, color: 'text-gray-500' },
+  // Tipos que vienen de la API
+  multisensor: { icon: Activity, color: 'text-orange-500' },
+  radiacion: { icon: Zap, color: 'text-yellow-500' },
+  // Fallback para tipos desconocidos
+  default: { icon: Settings, color: 'text-gray-500' }
 }
 
 export default function AreasEmpresaPage() {
@@ -172,10 +177,17 @@ export default function AreasEmpresaPage() {
       case 'humedad': return '%'
       case 'ph_suelo':
       case 'ph': return 'pH'
-      case 'radiacion_solar': return 'W/m²'
+      case 'radiacion_solar':
+      case 'radiacion': return 'W/m²'
       case 'nutrientes': return 'ppm'
       default: return ''
     }
+  }
+
+  const obtenerConfigSensor = (tipo: string) => {
+    const tipoNormalizado = tipo.toLowerCase()
+    const config = (tiposSensor as any)[tipoNormalizado]
+    return config || tiposSensor.default
   }
 
   const obtenerValorSensor = (sensor: APISensorData, tipo: string): number => {
@@ -189,7 +201,7 @@ export default function AreasEmpresaPage() {
   // Cargar datos al montar el componente
   useEffect(() => {
     cargarDatos()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const createArea = async (areaData: Partial<Area>) => {
     // TODO: Implementar creación de área
@@ -420,8 +432,9 @@ export default function AreasEmpresaPage() {
                 </h4>
                 <div className="space-y-1">
                   {area.sensores.slice(0, 3).map((sensor) => {
-                    const SensorIcon = tiposSensor[sensor.tipo].icon
-                    const sensorColor = tiposSensor[sensor.tipo].color
+                    const sensorConfig = obtenerConfigSensor(sensor.tipo)
+                    const SensorIcon = sensorConfig.icon
+                    const sensorColor = sensorConfig.color
                     
                     return (
                       <div key={sensor.id} className="flex items-center justify-between text-xs">
