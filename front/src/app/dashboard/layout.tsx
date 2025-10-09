@@ -1,6 +1,7 @@
 import { Sidebar } from '@/components/dashboard/sidebar'
 import { NotificationsDropdown } from '@/components/shared/notifications-dropdown'
 import { BottomNav } from '@/components/mobile/bottom-nav'
+import { AlertRaceLogo } from '@/components/AlertRaceLogo'
 
 export default function DashboardLayout({
   children,
@@ -23,10 +24,16 @@ export default function DashboardLayout({
               <div className="flex justify-between h-16">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <h1 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">
-                      <span className="hidden sm:inline">SachaTrace - Dashboard</span>
-                      <span className="sm:hidden">Dashboard</span>
-                    </h1>
+                    <div className="flex items-center space-x-3">
+                      <AlertRaceLogo 
+                        width={100} 
+                        height={25} 
+                        className="h-5 w-auto"
+                      />
+                      <span className="hidden sm:inline text-lg md:text-xl font-bold text-gray-900 dark:text-white">
+                        Dashboard
+                      </span>
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center space-x-4">

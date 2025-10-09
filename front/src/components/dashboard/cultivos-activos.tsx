@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Leaf, Calendar, MapPin, TrendingUp } from 'lucide-react'
-import { api } from '@/lib/api'
+import { mockApi } from '@/lib/mockData'
 import { LoadingSpinner } from '@/components/shared/loading-spinner'
 import { formatDate, calculateProgress } from '@/lib/utils'
 import type { CultivoResponse } from '@/types'
@@ -18,7 +18,7 @@ export function CultivosActivos() {
   const loadCultivos = async () => {
     try {
       setIsLoading(true)
-      const data = await api.cultivos.getCultivos()
+      const data = await mockApi.getCultivos()
       // Mostrar solo cultivos activos
       setCultivos(data.filter(cultivo => cultivo.estado === 'ACTIVO'))
     } catch (error) {

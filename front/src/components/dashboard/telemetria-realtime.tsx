@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Activity, RefreshCw } from 'lucide-react'
-import { api } from '@/lib/api'
+import { mockApi } from '@/lib/mockData'
 import { LoadingSpinner } from '@/components/shared/loading-spinner'
 import type { TelemetriaData } from '@/types'
 
@@ -14,7 +14,7 @@ export function TelemetriaRealtime() {
   const loadTelemetria = async () => {
     try {
       setIsLoading(true)
-      const data = await api.dashboard.getTelemetriaReciente()
+      const data = await mockApi.getTelemetria()
       setTelemetria(data)
       setLastUpdate(new Date())
     } catch (error) {

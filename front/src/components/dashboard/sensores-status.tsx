@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Activity, MapPin, Battery, Clock } from 'lucide-react'
-import { api } from '@/lib/api'
+import { mockApi } from '@/lib/mockData'
 import { LoadingSpinner } from '@/components/shared/loading-spinner'
 import { formatDateTime, getStatusColor } from '@/lib/utils'
 import type { SensorResponse } from '@/types'
@@ -18,7 +18,7 @@ export function SensoresStatus() {
   const loadSensores = async () => {
     try {
       setIsLoading(true)
-      const data = await api.sensors.getSensors()
+      const data = await mockApi.getSensores()
       setSensores(data)
     } catch (error) {
       console.error('Error loading sensores:', error)

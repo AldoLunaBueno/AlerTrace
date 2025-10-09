@@ -1,26 +1,26 @@
 'use client'
 
-import { TrendingUp, Users, Leaf, Award } from 'lucide-react'
+import { TrendingUp, Users, Factory, Award } from 'lucide-react'
 
 export function StatsSection() {
   const stats = [
     {
       icon: TrendingUp,
-      value: '95%',
-      label: 'Aumento en Productividad',
-      description: 'Agricultores reportan mejoras significativas en sus cultivos'
+      value: '85%',
+      label: 'Mejora en Eficiencia',
+      description: 'Empresas pueden lograr optimización en toda su cadena productiva'
     },
     {
       icon: Users,
-      value: '500+',
-      label: 'Agricultores Activos',
-      description: 'Confían en SachaTrace para sus cultivos'
+      value: '200+',
+      label: 'Capacidad de Conexión',
+      description: 'Plataforma diseñada para conectar múltiples empresas y operaciones'
     },
     {
-      icon: Leaf,
-      value: '10,000+',
-      label: 'Hectáreas Monitoreadas',
-      description: 'Superficie total bajo supervisión inteligente'
+      icon: Factory,
+      value: '25+',
+      label: 'Sectores Cubiertos',
+      description: 'Agricultura, manufactura y procesamiento industrial'
     },
     {
       icon: Award,
@@ -31,15 +31,15 @@ export function StatsSection() {
   ]
 
   return (
-    <section className="py-20 bg-sacha-600 dark:bg-sacha-700">
+    <section className="py-20 bg-sacha-600 dark:bg-sacha-700 hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+        <div className="text-center flex flex-col gap-6 mb-16">
+          <h2 className="text-3xl md:text-4xl font-bold text-white">
             Resultados que Hablan por Sí Solos
           </h2>
           <p className="text-xl text-sacha-100 max-w-3xl mx-auto">
-            Los números demuestran el impacto positivo de SachaTrace en la agricultura moderna.
+            Los números demuestran el impacto positivo de AlerTrace en las cadenas productivas modernas.
           </p>
         </div>
 
@@ -75,12 +75,12 @@ export function StatsSection() {
         <div className="mt-16 text-center">
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 max-w-4xl mx-auto border border-white/20">
             <h3 className="text-2xl font-bold text-white mb-4">
-              Únete a la Revolución Agrícola
+              Únete a la Revolución Productiva
             </h3>
             <p className="text-sacha-100 mb-6">
-              SachaTrace está transformando la forma en que los agricultores gestionan sus cultivos. 
+              AlerTrace está transformando la forma en que las empresas gestionan sus cadenas productivas. 
               Con tecnología IoT de última generación y análisis de datos en tiempo real, 
-              estamos ayudando a maximizar el rendimiento y la eficiencia.
+              estamos ayudando a maximizar la eficiencia y trazabilidad en cada eslabón.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a

@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Plus, Search, Filter } from 'lucide-react'
-import { api } from '@/lib/api'
+import { Plus, Search, Filter, X } from 'lucide-react'
+import { mockApi } from '@/lib/mockData'
 import { LoadingSpinner } from '@/components/shared/loading-spinner'
 import { formatDateTime, getStatusColor } from '@/lib/utils'
 import type { SensorResponse } from '@/types'
@@ -13,6 +13,14 @@ export default function SensoresPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all')
 
+  // modal estado
+  const [showAdd, setShowAdd] = useState(false)
+  const [newName, setNewName] = useState('')
+  const [newDeviceId, setNewDeviceId] = useState('')
+  const [newType, setNewType] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [saveMsg, setSaveMsg] = useState<string | null>(null)
+
   useEffect(() => {
     loadSensores()
   }, [])
@@ -20,7 +28,7 @@ export default function SensoresPage() {
   const loadSensores = async () => {
     try {
       setIsLoading(true)
-      const data = await api.sensors.getSensors()
+      const data = await mockApi.getSensores()
       setSensores(data)
     } catch (error) {
       console.error('Error loading sensores:', error)
@@ -40,6 +48,38 @@ export default function SensoresPage() {
     return matchesSearch && matchesFilter
   })
 
+  const openAdd = () => {
+    setNewName('')
+    setNewDeviceId('')
+    setNewType('')
+    setSaveMsg(null)
+    setShowAdd(true)
+  }
+
+  const handleAdd = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newName || !newDeviceId || !newType) {
+      setSaveMsg('Completa todos los campos.')
+      return
+    }
+    setSaving(true)
+    // MOCK: simular alta y actualización en memoria
+    setTimeout(() => {
+      const nuevo: SensorResponse = {
+        id_sensor: Math.max(0, ...sensores.map(s => s.id_sensor)) + 1,
+        nombre: newName,
+        device_id: newDeviceId,
+        tipo: newType,
+        ubicacion_sensor: 'No especificada',
+        activo: true,
+        ultima_lectura: null
+      }
+      setSensores([nuevo, ...sensores])
+      setSaving(false)
+      setShowAdd(false)
+    }, 800)
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -53,7 +93,7 @@ export default function SensoresPage() {
               Administra y monitorea todos tus sensores IoT
             </p>
           </div>
-          <button className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 bg-sacha-600 text-white rounded-lg hover:bg-sacha-700 transition-colors">
+          <button onClick={openAdd} className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 bg-sacha-600 text-white rounded-lg hover:bg-sacha-700 transition-colors">
             <Plus className="h-5 w-5 mr-2" />
             Agregar Sensor
           </button>
@@ -101,7 +141,7 @@ export default function SensoresPage() {
             <div className="text-gray-400 mb-4">
               {searchTerm || filterStatus !== 'all' ? 'No se encontraron sensores' : 'No hay sensores registrados'}
             </div>
-            <button className="inline-flex items-center px-4 py-2 bg-sacha-600 text-white rounded-lg hover:bg-sacha-700 transition-colors">
+            <button onClick={openAdd} className="inline-flex items-center px-4 py-2 bg-sacha-600 text-white rounded-lg hover:bg-sacha-700 transition-colors">
               <Plus className="h-5 w-5 mr-2" />
               Agregar Primer Sensor
             </button>
@@ -178,6 +218,39 @@ export default function SensoresPage() {
           </div>
         )}
       </div>
+
+      {/* Modal Agregar Sensor (mock) */}
+      {showAdd && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Agregar Sensor (demo)</h2>
+              <button onClick={() => setShowAdd(false)} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <form onSubmit={handleAdd} className="p-4 space-y-4">
+              <div>
+                <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">Nombre</label>
+                <input value={newName} onChange={(e) => setNewName(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sacha-500" />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">Device ID</label>
+                <input value={newDeviceId} onChange={(e) => setNewDeviceId(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sacha-500" />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">Tipo</label>
+                <input value={newType} onChange={(e) => setNewType(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sacha-500" />
+              </div>
+              {saveMsg && <div className="text-sm text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 rounded-md p-2">{saveMsg}</div>}
+              <div className="flex justify-end space-x-2 pt-2">
+                <button type="button" onClick={() => setShowAdd(false)} className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">Cancelar</button>
+                <button type="submit" disabled={saving} className="px-4 py-2 rounded-lg bg-[#4E9082] text-white font-semibold hover:bg-[#4E9082]/90 disabled:opacity-60">{saving ? 'Guardando...' : 'Guardar'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
