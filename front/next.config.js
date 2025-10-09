@@ -1,5 +1,11 @@
 /** @type {import('next').NextConfig} */
+const path = require('path')
+
 const nextConfig = {
+  webpack: (config) => {
+    config.resolve.alias['@'] = path.resolve(__dirname, 'src')
+    return config
+  },
   // Solo usar standalone en producción
   ...(process.env.NODE_ENV === 'production' && { output: 'standalone' }),
   env: {
@@ -33,4 +39,4 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+module.exports = nextConfig

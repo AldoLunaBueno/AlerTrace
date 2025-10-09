@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-import { Plus, User, Mail, Phone, MapPin, Thermometer, Droplets, Leaf, Cloud, Settings, Edit, Trash2, CreditCard, Lock, X } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Plus, Mail, Phone, Edit, Trash2, CreditCard, Lock, X } from 'lucide-react'
+import { api } from '@/lib/api'
 
 interface PersonalUser {
   id: string
@@ -17,112 +18,46 @@ interface PersonalUser {
   lastActive: string
 }
 
-interface Sensor {
-  id: string
-  name: string
-  type: 'temperature' | 'humidity' | 'soil' | 'weather'
-  location: string
-  status: 'online' | 'offline' | 'maintenance'
-}
 
-// Datos de prueba
-const mockUsers: PersonalUser[] = [
-  {
-    id: '1',
-    name: 'María González',
-    dni: '12345678',
-    email: 'maria.gonzalez@sachatrace.com',
-    phone: '+51 987 654 321',
-    role: 'admin',
-    department: 'Administración',
-    assignedSensors: ['sensor-001', 'sensor-002', 'sensor-003'],
-    status: 'active',
-    lastActive: '2024-01-15'
-  },
-  {
-    id: '2',
-    name: 'Carlos Rodríguez',
-    dni: '23456789',
-    email: 'carlos.rodriguez@sachatrace.com',
-    phone: '+51 987 654 322',
-    role: 'supervisor',
-    department: 'Producción',
-    assignedSensors: ['sensor-004', 'sensor-005'],
-    status: 'active',
-    lastActive: '2024-01-14'
-  },
-  {
-    id: '3',
-    name: 'Ana Martínez',
-    dni: '34567890',
-    email: 'ana.martinez@sachatrace.com',
-    phone: '+51 987 654 323',
-    role: 'operador',
-    department: 'Calidad',
-    assignedSensors: ['sensor-006'],
-    status: 'active',
-    lastActive: '2024-01-13'
-  },
-  {
-    id: '4',
-    name: 'Luis Fernández',
-    dni: '45678901',
-    email: 'luis.fernandez@sachatrace.com',
-    phone: '+51 987 654 324',
-    role: 'tecnico',
-    department: 'Mantenimiento',
-    assignedSensors: ['sensor-007', 'sensor-008'],
-    status: 'inactive',
-    lastActive: '2024-01-10'
-  },
-  {
-    id: '5',
-    name: 'Sofia Herrera',
-    dni: '56789012',
-    email: 'sofia.herrera@sachatrace.com',
-    phone: '+51 987 654 325',
-    role: 'operador',
-    department: 'Producción',
-    assignedSensors: ['sensor-009'],
-    status: 'active',
-    lastActive: '2024-01-12'
-  }
-]
 
-const mockSensors: Sensor[] = [
-  { id: 'sensor-001', name: 'Sensor Temp Norte', type: 'temperature', location: 'Campo Norte', status: 'online' },
-  { id: 'sensor-002', name: 'Sensor Humedad Sur', type: 'humidity', location: 'Campo Sur', status: 'online' },
-  { id: 'sensor-003', name: 'Sensor Suelo Este', type: 'soil', location: 'Campo Este', status: 'offline' },
-  { id: 'sensor-004', name: 'Estación Meteorológica', type: 'weather', location: 'Centro', status: 'maintenance' },
-  { id: 'sensor-005', name: 'Sensor Temp Oeste', type: 'temperature', location: 'Campo Oeste', status: 'online' },
-  { id: 'sensor-006', name: 'Sensor Humedad Centro', type: 'humidity', location: 'Campo Centro', status: 'online' },
-  { id: 'sensor-007', name: 'Sensor Suelo Norte', type: 'soil', location: 'Campo Norte', status: 'offline' },
-  { id: 'sensor-008', name: 'Sensor Clima Sur', type: 'weather', location: 'Campo Sur', status: 'online' },
-  { id: 'sensor-009', name: 'Sensor Temp Este', type: 'temperature', location: 'Campo Este', status: 'online' }
-]
+
+
+
 
 export default function PersonalEmpresaPage() {
-  const [users, setUsers] = useState<PersonalUser[]>(mockUsers)
+  const [users, setUsers] = useState<PersonalUser[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [showAddModal, setShowAddModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [userToDelete, setUserToDelete] = useState<PersonalUser | null>(null)
   const [formData, setFormData] = useState({
     dni: '',
     password: '',
-    confirmPassword: '',
-    assignedSensors: [] as string[]
+    confirmPassword: ''
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  const getSensorIcon = (type: string) => {
-    switch (type) {
-      case 'temperature': return <Thermometer className="w-4 h-4" />
-      case 'humidity': return <Droplets className="w-4 h-4" />
-      case 'soil': return <Leaf className="w-4 h-4" />
-      case 'weather': return <Cloud className="w-4 h-4" />
-      default: return <Settings className="w-4 h-4" />
+  // Cargar trabajadores reales desde la API
+  useEffect(() => {
+    const fetchTrabajadores = async () => {
+      try {
+        setLoading(true)
+        const data = await api.dashboard.getTrabajadores()
+        setUsers(data)
+        setError(null)
+      } catch (err) {
+        console.error('Error al cargar trabajadores:', err)
+        setError('Error al cargar la lista de trabajadores')
+      } finally {
+        setLoading(false)
+      }
     }
-  }
+
+    fetchTrabajadores()
+  }, [])
+
+
 
   const getRoleColor = (role: string) => {
     switch (role) {
@@ -142,9 +77,7 @@ export default function PersonalEmpresaPage() {
     }
   }
 
-  const getUserSensors = (userSensors: string[]) => {
-    return mockSensors.filter(sensor => userSensors.includes(sensor.id))
-  }
+
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -181,7 +114,7 @@ export default function PersonalEmpresaPage() {
         phone: '+51 000 000 000',
         role: 'operador', // Rol por defecto trabajador
         department: 'Producción',
-        assignedSensors: formData.assignedSensors,
+        assignedSensors: [],
         status: 'active',
         lastActive: new Date().toISOString().split('T')[0]
       }
@@ -191,8 +124,7 @@ export default function PersonalEmpresaPage() {
       setFormData({
         dni: '',
         password: '',
-        confirmPassword: '',
-        assignedSensors: []
+        confirmPassword: ''
       })
       setErrors({})
     }
@@ -203,20 +135,12 @@ export default function PersonalEmpresaPage() {
     setFormData({
       dni: '',
       password: '',
-      confirmPassword: '',
-      assignedSensors: []
+      confirmPassword: ''
     })
     setErrors({})
   }
 
-  const handleSensorToggle = (sensorId: string) => {
-    setFormData(prev => ({
-      ...prev,
-      assignedSensors: prev.assignedSensors.includes(sensorId)
-        ? prev.assignedSensors.filter(id => id !== sensorId)
-        : [...prev.assignedSensors, sensorId]
-    }))
-  }
+
 
   const handleDeleteClick = (user: PersonalUser) => {
     setUserToDelete(user)
@@ -234,6 +158,44 @@ export default function PersonalEmpresaPage() {
   const handleCancelDelete = () => {
     setShowDeleteModal(false)
     setUserToDelete(null)
+  }
+
+  // Mostrar loading
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
+              <p className="mt-4 text-gray-600">Cargando trabajadores...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Mostrar error
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="text-red-600 mb-4">⚠️</div>
+              <p className="text-red-600">{error}</p>
+              <button 
+                onClick={() => window.location.reload()} 
+                className="mt-4 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+              >
+                Reintentar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -265,8 +227,6 @@ export default function PersonalEmpresaPage() {
       {/* Personal Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {users.map((user) => {
-          const userSensors = getUserSensors(user.assignedSensors)
-          
           return (
             <div key={user.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
               {/* Card Header */}
@@ -294,7 +254,7 @@ export default function PersonalEmpresaPage() {
               </div>
 
               {/* User Info */}
-              <div className="space-y-3 mb-4">
+              <div className="space-y-3">
                 <div className="flex items-center text-sm text-gray-600">
                   <CreditCard className="w-4 h-4 mr-2" />
                   <span className="font-medium">DNI: {user.dni}</span>
@@ -318,26 +278,6 @@ export default function PersonalEmpresaPage() {
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(user.status)}`}>
                     {user.status}
                   </span>
-                </div>
-              </div>
-
-              {/* Assigned Sensors */}
-              <div className="border-t border-gray-200 pt-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-700">Sensores Asignados:</span>
-                  <span className="text-sm text-gray-500">{user.assignedSensors.length}</span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {userSensors.map((sensor) => (
-                    <div
-                      key={sensor.id}
-                      className="flex items-center px-2 py-1 bg-gray-100 rounded-md text-xs text-gray-700"
-                      title={`${sensor.name} - ${sensor.location}`}
-                    >
-                      {getSensorIcon(sensor.type)}
-                      <span className="ml-1 truncate max-w-20">{sensor.name}</span>
-                    </div>
-                  ))}
                 </div>
               </div>
             </div>
@@ -425,52 +365,7 @@ export default function PersonalEmpresaPage() {
                 </div>
               </div>
 
-              {/* Selección de Sensores */}
-              <div className="space-y-4">
-                <h4 className="text-md font-medium text-gray-900">Asignar Sensores</h4>
-                <p className="text-sm text-gray-600">
-                  Selecciona los sensores que este trabajador podrá gestionar
-                </p>
-                
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                  {mockSensors.map((sensor) => {
-                    const isSelected = formData.assignedSensors.includes(sensor.id)
-                    return (
-                      <button
-                        key={sensor.id}
-                        type="button"
-                        onClick={() => handleSensorToggle(sensor.id)}
-                        className={`flex flex-col items-center p-4 border-2 rounded-lg transition-all ${
-                          isSelected
-                            ? 'border-green-500 bg-green-50 text-green-700'
-                            : 'border-gray-200 hover:border-gray-300 text-gray-600'
-                        }`}
-                        title={`${sensor.name} - ${sensor.location}`}
-                      >
-                        <div className={`w-8 h-8 flex items-center justify-center rounded-lg mb-2 ${
-                          isSelected ? 'bg-green-100' : 'bg-gray-100'
-                        }`}>
-                          {getSensorIcon(sensor.type)}
-                        </div>
-                        <span className="text-xs font-medium text-center leading-tight">
-                          {sensor.name}
-                        </span>
-                        <span className="text-xs text-gray-500 mt-1">
-                          {sensor.location}
-                        </span>
-                      </button>
-                    )
-                  })}
-                </div>
 
-                {formData.assignedSensors.length > 0 && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                    <p className="text-sm text-green-800">
-                      <strong>{formData.assignedSensors.length}</strong> sensor(es) seleccionado(s)
-                    </p>
-                  </div>
-                )}
-              </div>
 
               {/* Botones */}
               <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">

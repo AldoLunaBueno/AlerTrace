@@ -1,10 +1,10 @@
 from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
-from typing import Optional
+from typing import Optional, Union
 from .jwt_service import jwt_service
 from ..database.connection import get_db
-from ..models.database import Trabajador
+from ..models.database import Trabajador, Empresa
 
 # Security scheme for Bearer tokens
 security = HTTPBearer()
@@ -12,8 +12,8 @@ security = HTTPBearer()
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db)
-) -> Trabajador:
-    """Extract and validate current user from JWT token and return User object"""
+) -> Union[Trabajador, Empresa]:
+    """Extract and validate current user from JWT token - returns Trabajador or Empresa"""
     token = credentials.credentials
     payload = jwt_service.verify_token(token)
     
@@ -24,22 +24,76 @@ def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    # Get user from database
-    dni = payload.get("sub")
-    user = db.query(Trabajador).filter(Trabajador.dni == dni).first()
+    user_type = payload.get("user_type", "trabajador")
+    user_id = payload.get("user_id")
     
-    if not user:
+    if user_type == "empresa":
+        # Es una empresa
+        empresa = db.query(Empresa).filter(Empresa.id_empresa == int(user_id)).first()
+        
+        if not empresa:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Empresa not found",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        if empresa.estado != "activa":
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Empresa deactivated",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        return empresa
+    else:
+        # Es un trabajador (comportamiento por defecto)
+        trabajador = db.query(Trabajador).filter(Trabajador.id_trabajador == int(user_id)).first()
+        
+        if not trabajador:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Trabajador not found",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        if not trabajador.activo:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Trabajador deactivated", 
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        return trabajador
+
+
+def get_current_trabajador(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db)
+) -> Trabajador:
+    """Dependency que solo acepta trabajadores"""
+    user = get_current_user(credentials, db)
+    
+    if not isinstance(user, Trabajador):
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found",
-            headers={"WWW-Authenticate": "Bearer"},
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acceso solo para trabajadores"
         )
     
-    if not user.activo:
+    return user
+
+
+def get_current_empresa(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db)
+) -> Empresa:
+    """Dependency que solo acepta empresas"""
+    user = get_current_user(credentials, db)
+    
+    if not isinstance(user, Empresa):
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User deactivated",
-            headers={"WWW-Authenticate": "Bearer"},
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acceso solo para empresas"
         )
     
     return user

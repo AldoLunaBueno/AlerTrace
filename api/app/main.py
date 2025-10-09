@@ -3,9 +3,11 @@ from fastapi.middleware.cors import CORSMiddleware
 import time
 
 # Importar los routers modulares
-from app.routes import auth  # cultivos, admin, dashboard, sensores
+from app.routes import auth, health
 from .routes.sensores import router as sensores_router
-from .routes import health
+from .routes.cultivos import router as cultivos_router
+from .routes.dashboard import router as dashboard_router
+from .routes.alertas import router as alertas_router
 
 app = FastAPI(
     title="SachaTrace API",
@@ -25,6 +27,9 @@ app.add_middleware(
 # Incluir routers
 app.include_router(auth.router)
 app.include_router(sensores_router)
+app.include_router(cultivos_router)
+app.include_router(dashboard_router)
+app.include_router(alertas_router)
 app.include_router(health.router, tags=["Health"])
 
 

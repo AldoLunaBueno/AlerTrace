@@ -108,30 +108,73 @@ export default function LoginPage() {
     setLoginError('')
     
     try {
-      // Simular login
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      // Simular validación (en producción sería con API real)
-      if (loginData.email === 'demo@industria.com' && loginData.password === 'demo123') {
-        // Guardar token de autenticación
-        localStorage.setItem('token', 'demo-token-industria')
-        localStorage.setItem('userType', loginData.tipoUsuario)
-        localStorage.setItem('userEmail', loginData.email)
+      // Llamada real al API del backend
+      const response = await fetch('http://localhost:8002/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: loginData.email,
+          password: loginData.password
+        })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
         
-        if (loginData.tipoUsuario === 'industria') {
-          router.push('/dashboard-empresa')
+        // Guardar token de autenticación real
+        localStorage.setItem('token', data.access_token)
+        localStorage.setItem('userEmail', loginData.email)
+        localStorage.setItem('userId', data.user_id)
+        
+        // Obtener información del usuario para determinar el tipo real
+        const userResponse = await fetch('http://localhost:8002/auth/me', {
+          headers: {
+            'Authorization': `Bearer ${data.access_token}`
+          }
+        })
+        
+        if (userResponse.ok) {
+          const userData = await userResponse.json()
+          const realUserType = userData.user_type // 'trabajador' o 'empresa'
+          
+            // VALIDACIÓN CRÍTICA: Verificar que el tipo de usuario coincida con la pestaña seleccionada
+          const expectedUserType = loginData.tipoUsuario === 'industria' ? 'empresa' : 'trabajador'
+          
+          if (realUserType !== expectedUserType) {
+            // El tipo de usuario no coincide con la pestaña seleccionada
+            const correctTab = realUserType === 'empresa' ? 'industria' : 'agricultor'
+            const correctTabName = realUserType === 'empresa' ? 'Industria' : 'Agricultor'
+            const currentTabName = loginData.tipoUsuario === 'industria' ? 'Industria' : 'Agricultor'
+            
+            setLoginError(`❌ Error de acceso: Este usuario es de tipo "${correctTabName}". Haz clic en la pestaña "${correctTabName}" arriba para continuar.`)
+            
+            // Auto-cambiar a la pestaña correcta después de 2 segundos
+            setTimeout(() => {
+              setLoginData(prev => ({ ...prev, tipoUsuario: correctTab }))
+              setLoginError('')
+            }, 3000)
+            
+            setIsLoading(false)
+            return
+          }          // Guardar el tipo real del usuario
+          localStorage.setItem('userType', realUserType === 'empresa' ? 'industria' : 'agricultor')
+          localStorage.setItem('userRole', userData.role)
+          localStorage.setItem('userName', userData.nombre || userData.username)
+          
+          // Redirigir al dashboard correspondiente basado en el tipo REAL
+          if (realUserType === 'empresa') {
+            router.push('/dashboard-empresa')
+          } else {
+            router.push('/dashboard-agricultor')
+          }
         } else {
-          router.push('/dashboard-agricultor')
+          setLoginError('Error al obtener información del usuario')
         }
-      } else if (loginData.email === 'demo@agricultor.com' && loginData.password === 'demo123') {
-        // Guardar token de autenticación
-        localStorage.setItem('token', 'demo-token-agricultor')
-        localStorage.setItem('userType', 'agricultor')
-        localStorage.setItem('userEmail', loginData.email)
-        
-        router.push('/dashboard-agricultor')
       } else {
-        setLoginError('Credenciales incorrectas. Usa demo@industria.com o demo@agricultor.com con contraseña demo123')
+        const errorData = await response.json()
+        setLoginError(errorData.detail || 'Credenciales incorrectas')
       }
     } catch (error) {
       console.error('Error en el login:', error)
@@ -285,12 +328,29 @@ export default function LoginPage() {
 
             {/* Error general */}
             {loginError && (
-              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-                <div className="flex items-center">
-                  <AlertCircle className="h-5 w-5 text-red-500 mr-2" />
-                  <p className="text-sm text-red-700 dark:text-red-400">
-                    {loginError}
-                  </p>
+              <div className={`border rounded-lg p-4 ${
+                loginError.includes('Error de acceso') 
+                  ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800'
+                  : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+              }`}>
+                <div className="flex items-start">
+                  <AlertCircle className={`h-5 w-5 mr-2 mt-0.5 ${
+                    loginError.includes('Error de acceso') ? 'text-orange-500' : 'text-red-500'
+                  }`} />
+                  <div className="flex-1">
+                    <p className={`text-sm ${
+                      loginError.includes('Error de acceso') 
+                        ? 'text-orange-700 dark:text-orange-400'
+                        : 'text-red-700 dark:text-red-400'
+                    }`}>
+                      {loginError}
+                    </p>
+                    {loginError.includes('Error de acceso') && (
+                      <p className="text-xs text-orange-600 dark:text-orange-500 mt-2">
+                        💡 La pestaña se cambiará automáticamente en unos segundos.
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
@@ -338,8 +398,9 @@ export default function LoginPage() {
               Cuentas de demostración:
             </h3>
             <div className={`text-xs ${colors.primaryText} space-y-1`}>
-              <div><strong>Industria:</strong> demo@industria.com / demo123</div>
-              <div><strong>Agricultor:</strong> demo@agricultor.com / demo123</div>
+              <div><strong>Industria:</strong> admin@agrotech.com / secret123</div>
+              <div><strong>Agricultor Admin:</strong> juan@agrosacha.pe / secret123</div>
+              <div><strong>Agricultor Worker:</strong> maria@agrosacha.pe / secret123</div>
             </div>
           </div>
 

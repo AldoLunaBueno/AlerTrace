@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import and_, desc, func, or_
 
 from app.models.database import (
-    Sensor, LecturaSensor, Alerta, ConfiguracionUmbral, Cultivo, Usuario
+    Sensor, LecturaSensor, Alerta, ConfiguracionUmbral, Trabajador, Empresa
 )
 
 

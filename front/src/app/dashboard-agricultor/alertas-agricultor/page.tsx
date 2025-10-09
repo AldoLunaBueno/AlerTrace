@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { AlertTriangle, CheckCircle, XCircle, Bell, Filter, Search, Eye, EyeOff, Settings, RefreshCw, Thermometer, Droplets, Sun, Sprout, Wind } from 'lucide-react'
+import { api } from '@/lib/api'
+import type { AlertaResponse } from '@/types'
 
 interface AlertaAgricultor {
   id: string
@@ -22,127 +24,122 @@ interface AlertaAgricultor {
   resuelta: boolean
 }
 
-const alertasMock: AlertaAgricultor[] = [
-  {
-    id: '1',
-    tipo: 'temperatura',
-    severidad: 'advertencia',
-    titulo: 'Temperatura del aire elevada',
-    descripcion: 'La temperatura del aire en el Campo 1 ha superado los 32°C, lo que puede generar estrés térmico en las plantas.',
-    ubicacion: 'Campo 1 - Sector A',
-    sensor: 'Sensor de Temperatura Aire TA-001',
-    valor: {
-      actual: 34.5,
-      limite: 32.0,
-      unidad: '°C'
-    },
-    recomendacion: 'Programar riegos más frecuentes y cortos; usar cobertura/sombra temporal en horas pico.',
-    timestamp: new Date('2025-01-15T18:30:00'),
-    leida: false,
-    resuelta: false
-  },
-  {
-    id: '2',
-    tipo: 'humedad',
-    severidad: 'critica',
-    titulo: 'Humedad del suelo crítica',
-    descripcion: 'La humedad del suelo ha caído por debajo del 15% VWC, indicando estrés hídrico severo con riesgo de marchitez.',
-    ubicacion: 'Campo 2 - Sector B',
-    sensor: 'Sensor de Humedad Suelo HS-002',
-    valor: {
-      actual: 12.3,
-      limite: 15.0,
-      unidad: '% VWC'
-    },
-    recomendacion: 'RIEGO INMEDIATO REQUERIDO. Activar sistema de riego; priorizar bloques más críticos; comprobar bombas y presiones.',
-    timestamp: new Date('2025-01-15T17:45:00'),
-    leida: true,
-    resuelta: false
-  },
-  {
-    id: '3',
-    tipo: 'clima',
-    severidad: 'advertencia',
-    titulo: 'Humedad relativa alta',
-    descripcion: 'La humedad relativa del aire ha alcanzado el 85%, creando condiciones propicias para enfermedades fúngicas.',
-    ubicacion: 'Campo 3 - Sector C',
-    sensor: 'Sensor de Humedad Relativa HR-003',
-    valor: {
-      actual: 85.2,
-      limite: 80.0,
-      unidad: '%'
-    },
-    recomendacion: 'Favorecer ventilación; evitar riegos nocturnos o de alta duración; minimizar mojado foliar.',
-    timestamp: new Date('2025-01-15T16:20:00'),
-    leida: true,
-    resuelta: false
-  },
-  {
-    id: '4',
-    tipo: 'sistema',
-    severidad: 'critica',
-    titulo: 'Índice UV extremo',
-    descripcion: 'El índice UV ha alcanzado nivel 11, representando alto riesgo de daño por radiación en las plantas.',
-    ubicacion: 'Campo 1 - Todos los sectores',
-    sensor: 'Sensor de Radiación UV UV-004',
-    valor: {
-      actual: 11.2,
-      limite: 10.0,
-      unidad: 'UV'
-    },
-    recomendacion: 'Evitar labores expuestas en horas pico; sombreo inmediato en áreas sensibles; proteger personal de campo.',
-    timestamp: new Date('2025-01-15T14:15:00'),
-    leida: false,
-    resuelta: false
-  },
-  {
-    id: '5',
-    tipo: 'temperatura',
-    severidad: 'info',
-    titulo: 'Temperatura del aire óptima',
-    descripcion: 'La temperatura del aire se mantiene en el rango óptimo de 22-28°C para el crecimiento del cultivo.',
-    ubicacion: 'Campo 2 - Sector A',
-    sensor: 'Sensor de Temperatura Aire TA-005',
-    valor: {
-      actual: 25.8,
-      limite: 28.0,
-      unidad: '°C'
-    },
-    recomendacion: 'Mantener manejo actual; continuar monitoreo regular.',
-    timestamp: new Date('2025-01-15T12:00:00'),
-    leida: true,
-    resuelta: true
-  },
-  {
-    id: '6',
-    tipo: 'humedad',
-    severidad: 'advertencia',
-    titulo: 'Exceso de humedad en suelo',
-    descripcion: 'La humedad del suelo ha superado el 40% VWC, indicando riesgo de anoxia radicular.',
-    ubicacion: 'Campo 3 - Sector B',
-    sensor: 'Sensor de Humedad Suelo HS-006',
-    valor: {
-      actual: 42.8,
-      limite: 40.0,
-      unidad: '% VWC'
-    },
-    recomendacion: 'Reducir frecuencia/duración de riegos; favorecer drenaje superficial; revisar válvulas y fugas.',
-    timestamp: new Date('2025-01-15T10:30:00'),
-    leida: false,
-    resuelta: false
-  }
-]
+
 
 export default function AlertasAgricultorPage() {
-  const [alertas, setAlertas] = useState<AlertaAgricultor[]>(alertasMock)
+  const [alertas, setAlertas] = useState<AlertaAgricultor[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [filtroSeveridad, setFiltroSeveridad] = useState<'todos' | 'info' | 'advertencia' | 'critica'>('todos')
   const [filtroTipo, setFiltroTipo] = useState<'todos' | 'temperatura' | 'humedad' | 'clima' | 'sistema'>('todos')
   const [busqueda, setBusqueda] = useState('')
-  const [alertasFiltradas, setAlertasFiltradas] = useState<AlertaAgricultor[]>(alertasMock)
+  const [alertasFiltradas, setAlertasFiltradas] = useState<AlertaAgricultor[]>([])
   const [recomendacionesVisibles, setRecomendacionesVisibles] = useState<{ [key: string]: boolean }>({})
   const [filtroFechaResueltas, setFiltroFechaResueltas] = useState<'todos' | 'hoy' | 'semana' | 'mes'>('todos')
   const [filtroSeveridadResueltas, setFiltroSeveridadResueltas] = useState<'todos' | 'info' | 'advertencia' | 'critica'>('todos')
   const [filtroTipoResueltas, setFiltroTipoResueltas] = useState<'todos' | 'temperatura' | 'humedad' | 'clima' | 'sistema'>('todos')
+
+  // Cargar alertas reales desde la API
+  useEffect(() => {
+    const loadAlertas = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        
+        const alertasData = await api.alertas.getAlertas()
+        
+        // Convertir datos de la API al formato del componente
+        const alertasFormatted: AlertaAgricultor[] = alertasData.map((alerta: any) => ({
+          id: (alerta.id_alerta || alerta.id).toString(),
+          tipo: mapTipoAPI(alerta.tipo_alerta || alerta.tipo),
+          severidad: mapSeveridadAPI(alerta.severidad),
+          titulo: alerta.titulo || generateTituloAgricultor(alerta),
+          descripcion: alerta.mensaje,
+          ubicacion: 'Campo General',
+          sensor: alerta.id_sensor ? `Sensor ${alerta.id_sensor}` : undefined,
+          valor: alerta.valor_actual && alerta.valor_umbral ? {
+            actual: alerta.valor_actual,
+            limite: alerta.valor_umbral,
+            unidad: getUnidadPorTipo(alerta.tipo_alerta || alerta.tipo)
+          } : undefined,
+          recomendacion: generateRecomendacion(alerta.tipo_alerta || alerta.tipo, alerta.severidad),
+          timestamp: new Date(alerta.fecha_creacion),
+          leida: false,
+          resuelta: alerta.resuelta || false
+        }))
+        
+        setAlertas(alertasFormatted)
+      } catch (err) {
+        console.error('Error al cargar alertas:', err)
+        setError('Error al cargar las alertas')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadAlertas()
+  }, [])
+
+  // Funciones helper para conversión de datos
+  const mapTipoAPI = (tipo: string): 'temperatura' | 'humedad' | 'riego' | 'plaga' | 'nutriente' | 'clima' | 'sistema' => {
+    switch (tipo.toLowerCase()) {
+      case 'temperatura': return 'temperatura'
+      case 'humedad': return 'humedad'
+      case 'humedad_aire': return 'humedad'
+      case 'humedad_suelo': return 'riego'
+      case 'ph': return 'nutriente'
+      case 'nutrientes': return 'nutriente'
+      case 'radiacion': return 'clima'
+      case 'radiacion_solar': return 'clima'
+      case 'riego': return 'riego'
+      default: return 'sistema'
+    }
+  }
+
+  const mapSeveridadAPI = (severidad: string): 'info' | 'advertencia' | 'critica' => {
+    switch (severidad.toLowerCase()) {
+      case 'critical': return 'critica'
+      case 'high': return 'critica' 
+      case 'medium': return 'advertencia'
+      case 'low': return 'info'
+      // Compatibilidad con nombres en español
+      case 'critica': return 'critica'
+      case 'alta': return 'critica'
+      case 'media': return 'advertencia'
+      case 'baja': return 'info'
+      default: return 'info'
+    }
+  }
+
+  const generateTituloAgricultor = (alerta: any): string => {
+    return `Alerta de ${alerta.tipo}${alerta.sensor_id ? ` - Sensor ${alerta.sensor_id}` : ''}`
+  }
+
+  const getUnidadPorTipo = (tipo: string): string => {
+    switch (tipo.toLowerCase()) {
+      case 'temperatura': return '°C'
+      case 'humedad':
+      case 'humedad_aire':
+      case 'humedad_suelo': return '%'
+      case 'ph': return 'pH'
+      case 'radiacion':
+      case 'radiacion_solar': return 'W/m²'
+      default: return ''
+    }
+  }
+
+  const generateRecomendacion = (tipo: string, severidad: string): string => {
+    switch (tipo) {
+      case 'temperatura':
+        return severidad === 'critica' ? 'Aplicar riego inmediato y sombreo temporal.' : 'Monitorear temperaturas y ajustar riego.'
+      case 'humedad':
+        return severidad === 'critica' ? 'Revisar sistema de riego urgentemente.' : 'Verificar niveles de humedad del suelo.'
+      case 'ph':
+        return 'Ajustar pH del suelo según análisis de laboratorio.'
+      default:
+        return 'Consultar con especialista agrónomo.'
+    }
+  }
 
   useEffect(() => {
     let filtradas = alertas.filter(alerta => !alerta.resuelta) // Excluir alertas resueltas

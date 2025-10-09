@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { User, MapPin, Phone, Mail, Settings, Bell, Shield, Save, Eye, EyeOff, Key, Building } from 'lucide-react'
+import { api } from '@/lib/api'
 
 interface PerfilEmpresa {
   nombre: string
@@ -25,34 +26,56 @@ interface ConfiguracionNotificaciones {
   alertasProduccion: boolean
 }
 
-const perfilMock: PerfilEmpresa = {
-  nombre: 'Sacha Trace Manufacturing S.A.C.',
-  email: 'admin@sachainchi.com',
-  telefono: '+51 1 234 5678',
-  direccion: 'Av. Industrial 1234',
-  ciudad: 'Lima',
-  region: 'Lima',
-  ruc: '20123456789',
-  tipoEmpresa: 'Manufacturera',
-  fechaRegistro: '2024-01-15',
-  representanteLegal: 'María González Pérez'
-}
 
-const notificacionesMock: ConfiguracionNotificaciones = {
-  alertasCriticas: true,
-  alertasSensores: true,
-  alertasLotes: true,
-  alertasCalidad: true,
-  alertasMantenimiento: false,
-  alertasProduccion: true
-}
 
 export default function ConfiguracionEmpresaPage() {
-  const [perfil, setPerfil] = useState<PerfilEmpresa>(perfilMock)
-  const [notificaciones, setNotificaciones] = useState<ConfiguracionNotificaciones>(notificacionesMock)
+  const [perfil, setPerfil] = useState<PerfilEmpresa | null>(null)
+  const [notificaciones, setNotificaciones] = useState<ConfiguracionNotificaciones>({
+    alertasCriticas: true,
+    alertasSensores: true,
+    alertasLotes: true,
+    alertasCalidad: true,
+    alertasMantenimiento: false,
+    alertasProduccion: true
+  })
   const [mostrarContrasena, setMostrarContrasena] = useState(false)
   const [tabActiva, setTabActiva] = useState<'perfil' | 'notificaciones' | 'seguridad'>('perfil')
   const [guardando, setGuardando] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Cargar datos de la empresa desde la API
+  useEffect(() => {
+    const loadCompanyData = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        
+        const userData = await api.auth.getCurrentUser()
+        
+        // Convertir datos de la API al formato esperado para empresa
+        setPerfil({
+          nombre: userData.nombre || 'Empresa',
+          email: userData.email || '',
+          telefono: userData.telefono || '',
+          direccion: userData.direccion || '',
+          ciudad: userData.ciudad || '',
+          region: userData.region || '',
+          ruc: userData.ruc || '',
+          tipoEmpresa: userData.tipo_empresa || 'Manufacturera',
+          fechaRegistro: userData.fecha_registro || new Date().toISOString().split('T')[0],
+          representanteLegal: userData.representante_legal || ''
+        })
+      } catch (err) {
+        console.error('Error al cargar datos de la empresa:', err)
+        setError('Error al cargar los datos del perfil de la empresa')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadCompanyData()
+  }, [])
 
   const tabs = [
     { id: 'perfil', nombre: 'Perfil', icono: Building },
@@ -65,6 +88,46 @@ export default function ConfiguracionEmpresaPage() {
     setTimeout(() => {
       setGuardando(false)
     }, 1000)
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mr-3"></div>
+          <span className="text-lg text-gray-600 dark:text-gray-400">Cargando configuración de la empresa...</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <div className="text-red-600 mb-2">
+            <h3 className="text-lg font-semibold">Error al cargar configuración</h3>
+          </div>
+          <p className="text-red-700 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+          >
+            Reintentar
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (!perfil) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center py-12">
+          <p className="text-gray-600 dark:text-gray-400">No hay datos de perfil disponibles</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -116,7 +179,7 @@ export default function ConfiguracionEmpresaPage() {
                       <input
                         type="text"
                         value={perfil.nombre}
-                        onChange={(e) => setPerfil({ ...perfil, nombre: e.target.value })}
+                        onChange={(e) => setPerfil(prev => prev ? { ...prev, nombre: e.target.value } : null)}
                         className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                       />
                     </div>
@@ -131,7 +194,7 @@ export default function ConfiguracionEmpresaPage() {
                       <input
                         type="text"
                         value={perfil.ruc}
-                        onChange={(e) => setPerfil({ ...perfil, ruc: e.target.value })}
+                        onChange={(e) => setPerfil(prev => prev ? { ...prev, ruc: e.target.value } : null)}
                         className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                       />
                     </div>
@@ -146,7 +209,7 @@ export default function ConfiguracionEmpresaPage() {
                       <input
                         type="email"
                         value={perfil.email}
-                        onChange={(e) => setPerfil({ ...perfil, email: e.target.value })}
+                        onChange={(e) => setPerfil(prev => prev ? { ...prev, email: e.target.value } : null)}
                         className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                       />
                     </div>
@@ -161,7 +224,7 @@ export default function ConfiguracionEmpresaPage() {
                       <input
                         type="tel"
                         value={perfil.telefono}
-                        onChange={(e) => setPerfil({ ...perfil, telefono: e.target.value })}
+                        onChange={(e) => setPerfil(prev => prev ? { ...prev, telefono: e.target.value } : null)}
                         className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                       />
                     </div>
@@ -176,7 +239,7 @@ export default function ConfiguracionEmpresaPage() {
                       <input
                         type="text"
                         value={perfil.direccion}
-                        onChange={(e) => setPerfil({ ...perfil, direccion: e.target.value })}
+                        onChange={(e) => setPerfil(prev => prev ? { ...prev, direccion: e.target.value } : null)}
                         className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                       />
                     </div>
@@ -189,7 +252,7 @@ export default function ConfiguracionEmpresaPage() {
                     <input
                       type="text"
                       value={perfil.ciudad}
-                      onChange={(e) => setPerfil({ ...perfil, ciudad: e.target.value })}
+                      onChange={(e) => setPerfil(prev => prev ? { ...prev, ciudad: e.target.value } : null)}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                     />
                   </div>
@@ -201,7 +264,7 @@ export default function ConfiguracionEmpresaPage() {
                     <input
                       type="text"
                       value={perfil.region}
-                      onChange={(e) => setPerfil({ ...perfil, region: e.target.value })}
+                      onChange={(e) => setPerfil(prev => prev ? { ...prev, region: e.target.value } : null)}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                     />
                   </div>
@@ -215,7 +278,7 @@ export default function ConfiguracionEmpresaPage() {
                       <input
                         type="text"
                         value={perfil.representanteLegal}
-                        onChange={(e) => setPerfil({ ...perfil, representanteLegal: e.target.value })}
+                        onChange={(e) => setPerfil(prev => prev ? { ...prev, representanteLegal: e.target.value } : null)}
                         className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                       />
                     </div>

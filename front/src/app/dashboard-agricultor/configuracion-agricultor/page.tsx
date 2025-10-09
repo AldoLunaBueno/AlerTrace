@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { User, MapPin, Phone, Mail, Settings, Bell, Shield, Save, Eye, EyeOff, Key } from 'lucide-react'
 import { LocationPicker } from '@/components/shared/location-picker'
+import { api } from '@/lib/api'
 
 interface PerfilAgricultor {
   nombre: string
@@ -27,35 +28,57 @@ interface ConfiguracionNotificaciones {
   alertasClima: boolean
 }
 
-const perfilMock: PerfilAgricultor = {
-  nombre: 'Juan Pérez García',
-  email: 'juan.perez@sachainchi.com',
-  telefono: '+51 987 654 321',
-  direccion: 'Calle Los Olivos 123, Trujillo, La Libertad, Perú',
-  ciudad: 'Trujillo',
-  region: 'La Libertad',
-  tipoCultivo: 'Sacha Inchi',
-  areaTotal: 5.5,
-  fechaRegistro: '2024-03-15',
-  latitud: -8.1116,
-  longitud: -79.0287
-}
 
-const notificacionesMock: ConfiguracionNotificaciones = {
-  alertasCriticas: true,
-  alertasTemperatura: true,
-  alertasHumedad: true,
-  alertasRiego: true,
-  alertasPlagas: true,
-  alertasClima: false
-}
 
 export default function ConfiguracionAgricultorPage() {
-  const [perfil, setPerfil] = useState<PerfilAgricultor>(perfilMock)
-  const [notificaciones, setNotificaciones] = useState<ConfiguracionNotificaciones>(notificacionesMock)
+  const [perfil, setPerfil] = useState<PerfilAgricultor | null>(null)
+  const [notificaciones, setNotificaciones] = useState<ConfiguracionNotificaciones>({
+    alertasCriticas: true,
+    alertasTemperatura: true,
+    alertasHumedad: true,
+    alertasRiego: true,
+    alertasPlagas: true,
+    alertasClima: false
+  })
   const [mostrarContrasena, setMostrarContrasena] = useState(false)
   const [tabActiva, setTabActiva] = useState<'perfil' | 'notificaciones' | 'seguridad'>('perfil')
   const [guardando, setGuardando] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Cargar datos del usuario desde la API
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        
+        const userData = await api.auth.getCurrentUser()
+        
+        // Convertir datos de la API al formato esperado
+        setPerfil({
+          nombre: userData.nombre || 'Usuario',
+          email: userData.email || '',
+          telefono: userData.telefono || '',
+          direccion: userData.direccion || '',
+          ciudad: userData.ciudad || '',
+          region: userData.region || '',
+          tipoCultivo: userData.tipo_cultivo || 'Sacha Inchi',
+          areaTotal: userData.area_total || 0,
+          fechaRegistro: userData.fecha_registro || new Date().toISOString().split('T')[0],
+          latitud: userData.latitud,
+          longitud: userData.longitud
+        })
+      } catch (err) {
+        console.error('Error al cargar datos del usuario:', err)
+        setError('Error al cargar los datos del perfil')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadUserData()
+  }, [])
 
   const tabs = [
     { id: 'perfil', nombre: 'Perfil', icono: User },
@@ -71,14 +94,57 @@ export default function ConfiguracionAgricultorPage() {
   }
 
   const handleLocationChange = (locationData: any) => {
-    setPerfil(prev => ({
-      ...prev,
-      direccion: locationData.address,
-      ciudad: locationData.city || prev.ciudad,
-      region: locationData.region || prev.region,
-      latitud: locationData.lat,
-      longitud: locationData.lng
-    }))
+    setPerfil(prev => {
+      if (!prev) return null
+      return {
+        ...prev,
+        direccion: locationData.address,
+        ciudad: locationData.city || prev.ciudad,
+        region: locationData.region || prev.region,
+        latitud: locationData.lat,
+        longitud: locationData.lng
+      }
+    })
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-6 pb-20 md:pb-6">
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mr-3"></div>
+          <span className="text-lg text-gray-600 dark:text-gray-400">Cargando configuración...</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6 pb-20 md:pb-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <div className="text-red-600 mb-2">
+            <h3 className="text-lg font-semibold">Error al cargar configuración</h3>
+          </div>
+          <p className="text-red-700 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+          >
+            Reintentar
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (!perfil) {
+    return (
+      <div className="space-y-6 pb-20 md:pb-6">
+        <div className="text-center py-12">
+          <p className="text-gray-600 dark:text-gray-400">No hay datos de perfil disponibles</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -130,7 +196,7 @@ export default function ConfiguracionAgricultorPage() {
                       <input
                         type="text"
                         value={perfil.nombre}
-                        onChange={(e) => setPerfil({ ...perfil, nombre: e.target.value })}
+                        onChange={(e) => setPerfil(prev => prev ? { ...prev, nombre: e.target.value } : null)}
                         className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                       />
                     </div>
@@ -145,7 +211,7 @@ export default function ConfiguracionAgricultorPage() {
                       <input
                         type="email"
                         value={perfil.email}
-                        onChange={(e) => setPerfil({ ...perfil, email: e.target.value })}
+                        onChange={(e) => setPerfil(prev => prev ? { ...prev, email: e.target.value } : null)}
                         className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                       />
                     </div>
@@ -160,7 +226,7 @@ export default function ConfiguracionAgricultorPage() {
                       <input
                         type="tel"
                         value={perfil.telefono}
-                        onChange={(e) => setPerfil({ ...perfil, telefono: e.target.value })}
+                        onChange={(e) => setPerfil(prev => prev ? { ...prev, telefono: e.target.value } : null)}
                         className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                       />
                     </div>
@@ -173,7 +239,7 @@ export default function ConfiguracionAgricultorPage() {
                     <input
                       type="text"
                       value={perfil.tipoCultivo}
-                      onChange={(e) => setPerfil({ ...perfil, tipoCultivo: e.target.value })}
+                      onChange={(e) => setPerfil(prev => prev ? { ...prev, tipoCultivo: e.target.value } : null)}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                     />
                   </div>
@@ -207,7 +273,7 @@ export default function ConfiguracionAgricultorPage() {
                           <input
                             type="text"
                             value={perfil.ciudad}
-                            onChange={(e) => setPerfil({ ...perfil, ciudad: e.target.value })}
+                            onChange={(e) => setPerfil(prev => prev ? { ...prev, ciudad: e.target.value } : null)}
                             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                           />
                         </div>
@@ -219,7 +285,7 @@ export default function ConfiguracionAgricultorPage() {
                           <input
                             type="text"
                             value={perfil.region}
-                            onChange={(e) => setPerfil({ ...perfil, region: e.target.value })}
+                            onChange={(e) => setPerfil(prev => prev ? { ...prev, region: e.target.value } : null)}
                             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                           />
                         </div>
@@ -232,7 +298,7 @@ export default function ConfiguracionAgricultorPage() {
                             type="number"
                             step="0.1"
                             value={perfil.areaTotal}
-                            onChange={(e) => setPerfil({ ...perfil, areaTotal: parseFloat(e.target.value) })}
+                            onChange={(e) => setPerfil(prev => prev ? { ...prev, areaTotal: parseFloat(e.target.value) || 0 } : null)}
                             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                           />
                         </div>

@@ -12,11 +12,15 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 # Instalar dependencias usando pnpm
 RUN pnpm install --frozen-lockfile
 
-# Copiamos el resto del código
+# Copiar el código fuente
 COPY . .
+
+# Variables de entorno para Next.js
+ENV PORT=8080
+ENV HOSTNAME=0.0.0.0
 
 # Exponemos el puerto
 EXPOSE 8080
 
 # Iniciamos en modo desarrollo
-CMD ["pnpm", "dev", "--", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["pnpm", "dev"]
