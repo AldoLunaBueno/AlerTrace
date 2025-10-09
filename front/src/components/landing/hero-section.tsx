@@ -2,12 +2,35 @@
 
 import Link from 'next/link'
 import { ArrowRight, Factory, BarChart3, Smartphone, Globe } from 'lucide-react'
+import { useState, useEffect } from 'react'
 
 export function HeroSection() {
+  const [videoSource, setVideoSource] = useState('/VideoHero.mp4')
+
+  useEffect(() => {
+    const updateVideoSource = () => {
+      if (window.innerWidth <= 768) {
+        setVideoSource('/video-alertrace-movil.mp4')
+      } else {
+        setVideoSource('/VideoHero.mp4')
+      }
+    }
+
+    // Set initial video source
+    updateVideoSource()
+
+    // Add resize listener
+    window.addEventListener('resize', updateVideoSource)
+
+    // Cleanup
+    return () => window.removeEventListener('resize', updateVideoSource)
+  }, [])
+
   return (
     <section className="relative py-20 overflow-hidden">
       {/* Video Background */}
       <video
+        key={videoSource}
         autoPlay
         muted
         loop
@@ -15,8 +38,7 @@ export function HeroSection() {
         preload="auto"
         className="absolute inset-0 w-full h-full object-cover object-center"
       >
-        <source src="/video-alertrace-movil.mp4" type="video/mp4" media="(max-width: 768px)" />
-        <source src="/VideoHero.mp4" type="video/mp4" media="(min-width: 769px)" />
+        <source src={videoSource} type="video/mp4" />
         {/* Fallback para navegadores que no soportan video */}
         <div className="absolute inset-0 bg-gradient-to-br from-sacha-50 to-green-100 dark:from-gray-900 dark:to-gray-800"></div>
       </video>
