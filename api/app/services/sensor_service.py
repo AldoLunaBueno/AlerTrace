@@ -4,6 +4,10 @@ from datetime import datetime, timedelta
 from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, desc, func, or_
+from tuya_connector import TuyaOpenAPI
+import os
+from decimal import Decimal
+import asyncio
 
 from app.models.database import (
     Sensor, LecturaSensor, Alerta, ConfiguracionUmbral, Trabajador, Empresa
@@ -12,6 +16,53 @@ from app.models.database import (
 
 class SensorService:
     """IoT sensor operations and analytics"""
+    
+    def __init__(self):
+        self.api_endpoint = os.getenv("TUYA_API_ENDPOINT", "https://openapi.tuyaus.com")
+        self.access_id = os.getenv("TUYA_ACCESS_ID")
+        self.access_key = os.getenv("TUYA_ACCESS_KEY")
+        self.openapi = TuyaOpenAPI(self.api_endpoint, self.access_id, self.access_key)
+        self.openapi.connect()
+    
+    async def poll_sensor(self, db: Session, sensor: Sensor) -> Optional[LecturaSensor]:
+        """Poll a single sensor and store its reading in the database"""
+        try:
+            response = self.openapi.get(f"/v1.0/devices/{sensor.device_id}/status")
+            if response.get("success"):
+                data = {item["code"]: item["value"] for item in response["result"]}
+                
+                # Create new sensor reading
+                lectura = LecturaSensor(
+                    id_sensor=sensor.id_sensor,
+                    temperatura=Decimal(str(data.get('temp_current', 0) / 10)),  # Convert to Celsius
+                    humedad_aire=Decimal(str(data.get('humidity_value', 0))),  # Direct percentage
+                    humedad_suelo=Decimal('0'),  # Not available in current sensor
+                    ph_suelo=Decimal('0'),  # Not available in current sensor
+                    radiacion_solar=Decimal('0')  # Not available in current sensor
+                )
+                
+                # Update sensor's last reading timestamp
+                sensor.ultima_lectura = datetime.utcnow()
+                
+                db.add(lectura)
+                db.commit()
+                return lectura
+            else:
+                print(f"Error polling sensor {sensor.device_id}: {response}")
+                return None
+        except Exception as e:
+            print(f"Exception polling sensor {sensor.device_id}: {str(e)}")
+            return None
+
+    async def poll_all_sensors(self, db: Session) -> None:
+        """Poll all active sensors in the database"""
+        try:
+            sensores = db.query(Sensor).filter(Sensor.activo == True).all()
+            for sensor in sensores:
+                await self.poll_sensor(db, sensor)
+        except Exception as e:
+            print(f"Error polling sensors: {str(e)}")
+    
     
     @staticmethod
     def get_stats(db: Session, user_id: int) -> Dict[str, Any]:

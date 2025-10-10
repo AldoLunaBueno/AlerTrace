@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import time
+from .worker import init_worker
 
 # Importar los routers modulares
 from app.routes import auth, health
@@ -43,6 +44,12 @@ def root():
         "documentation": "/docs",
         "timestamp": int(time.time())
     }
+
+# Iniciar el worker cuando se inicia la aplicación
+@app.on_event("startup")
+def startup_event():
+    """Evento que se ejecuta al iniciar la aplicación"""
+    init_worker()
 
 
 if __name__ == "__main__":
