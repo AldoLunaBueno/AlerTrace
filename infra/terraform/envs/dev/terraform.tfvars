@@ -1,0 +1,7 @@
+domain_name   = "tarpuqkuna.lat"
+region        = "us-east-1"
+env           = "dev"
+db_name       = "postgres"
+db_user       = "postgres"
+db_password   = "postgres"
+api_image_url = "123456789012.dkr.ecr.us-east-1.amazonaws.com/my-api:latest"

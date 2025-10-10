@@ -1,0 +1,163 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700;800;900&display=swap');
+
+/* Variables CSS para esquemas de color diferenciados */
+:root {
+  /* Colores para Dashboard Empresa (Industrial) */
+  --empresa-primary: 220 100% 50%;
+  --empresa-primary-dark: 220 100% 45%;
+  --empresa-secondary: 220 14% 96%;
+  --empresa-accent: 220 100% 95%;
+  
+  /* Colores para Dashboard Agricultor */
+  --agricultor-primary: 142 76% 36%;
+  --agricultor-primary-dark: 142 76% 30%;
+  --agricultor-secondary: 142 14% 96%;
+  --agricultor-accent: 142 76% 95%;
+}
+
+/* Estilos específicos para la aplicación */
+.sacha-gradient {
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+}
+
+.empresa-gradient {
+  background: linear-gradient(135deg, hsl(var(--empresa-primary)) 0%, hsl(var(--empresa-primary-dark)) 100%);
+}
+
+.agricultor-gradient {
+  background: linear-gradient(135deg, hsl(var(--agricultor-primary)) 0%, hsl(var(--agricultor-primary-dark)) 100%);
+}
+
+.kpi-card {
+  @apply bg-gradient-to-br from-card to-accent border border-border rounded-lg p-6 shadow-sm;
+}
+
+/* Esquemas de color específicos */
+.dashboard-empresa-primary {
+  @apply text-blue-600 dark:text-blue-400;
+}
+
+.dashboard-empresa-bg {
+  @apply bg-blue-50 dark:bg-blue-900/20;
+}
+
+.dashboard-empresa-border {
+  @apply border-blue-200 dark:border-blue-800;
+}
+
+.dashboard-agricultor-primary {
+  @apply text-green-600 dark:text-green-400;
+}
+
+.dashboard-agricultor-bg {
+  @apply bg-green-50 dark:bg-green-900/20;
+}
+
+.dashboard-agricultor-border {
+  @apply border-green-200 dark:border-green-800;
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 142 76% 36%;
+    --primary-foreground: 355.7 100% 97.3%;
+    --secondary: 210 40% 98%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 98%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 98%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 142 76% 36%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 142 76% 36%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 142 76% 36%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Leaflet CSS */
+@import 'leaflet/dist/leaflet.css';
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100 dark:bg-gray-800;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 dark:bg-gray-600 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400 dark:bg-gray-500;
+}
+
+/* Loading animation */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Pulse animation for loading states */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

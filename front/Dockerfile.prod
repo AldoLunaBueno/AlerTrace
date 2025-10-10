@@ -1,0 +1,45 @@
+# Dockerfile optimizado para producción con pnpm
+FROM node:20-alpine AS base
+
+# Instalar pnpm
+RUN npm install -g pnpm@8.15.0
+
+# Dependencias necesarias para builds nativos
+RUN apk add --no-cache libc6-compat
+
+WORKDIR /app
+
+# Configurar pnpm
+COPY .npmrc pnpm-workspace.yaml ./
+COPY package.json pnpm-lock.yaml ./
+
+# Instalar dependencias
+RUN pnpm install --frozen-lockfile --prod
+
+# Build de la aplicación
+COPY . .
+RUN pnpm build
+
+# Imagen de producción
+FROM node:20-alpine AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Copiar archivos necesarios
+COPY --from=base /app/public ./public
+COPY --from=base /app/.next/standalone ./
+COPY --from=base /app/.next/static ./.next/static
+
+USER nextjs
+
+EXPOSE 3000
+
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+CMD ["node", "server.js"]
