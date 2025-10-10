@@ -16,5 +16,5 @@ COPY . .
 # Exponer puerto
 EXPOSE 8000
 
-# Comando por defecto
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Usar variable de entorno PORT de Railway
+CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
