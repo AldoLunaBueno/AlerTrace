@@ -3,11 +3,9 @@
 import { SidebarEmpresa } from '@/components/dashboard/sidebar-empresa'
 import { NotificationsDropdown } from '@/components/shared/notifications-dropdown'
 import { BottomNavEmpresa } from '@/components/mobile/bottom-nav-empresa'
-<<<<<<< HEAD
+
 import { AlertRaceLogo } from '@/components/AlertRaceLogo'
-=======
 import RouteGuard from '@/components/shared/route-guard'
->>>>>>> 87207c5437ec1ce312e89e2145007324c8710247
 
 export default function DashboardEmpresaLayout({
   children,

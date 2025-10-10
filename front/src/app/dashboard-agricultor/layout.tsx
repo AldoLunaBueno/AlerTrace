@@ -3,11 +3,8 @@
 import { SidebarAgricultor } from '@/components/dashboard/sidebar-agricultor'
 import { NotificationsDropdown } from '@/components/shared/notifications-dropdown'
 import { BottomNavAgricultor } from '@/components/mobile/bottom-nav-agricultor'
-<<<<<<< HEAD
 import { AlertRaceLogo } from '@/components/AlertRaceLogo'
-=======
 import RouteGuard from '@/components/shared/route-guard'
->>>>>>> 87207c5437ec1ce312e89e2145007324c8710247
 
 export default function DashboardAgricultorLayout({
   children,
