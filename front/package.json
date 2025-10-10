@@ -4,7 +4,8 @@
   "description": "Frontend para AlerTrace - Sistema de Trazabilidad Agrícola",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "NODE_ENV=development next dev",
+    "dev:prod": "NODE_ENV=production next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

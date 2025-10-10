@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import time
+import os
 from .worker import init_worker
 
 # Importar los routers modulares
@@ -17,9 +18,16 @@ app = FastAPI(
 )
 
 # CORS configuration
+origins = [
+    "http://localhost:3000",  # Development
+    "https://sachatrace.vercel.app",  # Production
+]
+if origins_env := os.getenv("ALLOWED_ORIGINS"):
+    origins.extend(origins_env.split(","))
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
