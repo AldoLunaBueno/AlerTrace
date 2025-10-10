@@ -20,7 +20,9 @@ import {
   Clock,
   XCircle
 } from 'lucide-react'
-import { api, SensorData as APISensorData } from '@/lib/api'
+import { SensorsModal } from '@/components/dashboard/SensorsModal'
+import { api } from '@/lib/api'
+import type { SensorResponse as APISensorData } from '@/types'
 
 // NODO PROMPT: AREAS_GESTION - Página de gestión de áreas de producción
 
@@ -81,7 +83,12 @@ const tiposSensor = {
   presion: { icon: BarChart3, color: 'text-purple-500' },
   flujo: { icon: Zap, color: 'text-yellow-500' },
   nivel: { icon: BarChart3, color: 'text-indigo-500' },
-  personalizado: { icon: Settings, color: 'text-gray-500' }
+  personalizado: { icon: Settings, color: 'text-gray-500' },
+  // Tipos que vienen de la API
+  multisensor: { icon: Activity, color: 'text-orange-500' },
+  radiacion: { icon: Zap, color: 'text-yellow-500' },
+  // Fallback para tipos desconocidos
+  default: { icon: Settings, color: 'text-gray-500' }
 }
 
 export default function AreasEmpresaPage() {
@@ -104,92 +111,92 @@ export default function AreasEmpresaPage() {
   })
 
   // Cargar datos reales de sensores y crear áreas basadas en ubicaciones
-  const fetchAreas = async () => {
+  const cargarDatos = async () => {
     try {
-      setLoading(true)
-      setError(null)
+      const response = await api.sensors.getSensors() as any
       
-      const sensoresData = await api.sensors.getSensors()
-      
-      // Agrupar sensores por ubicación para crear áreas
-      const areasMap = new Map<string, Area>()
-      
-      sensoresData.forEach((sensor: APISensorData) => {
-        const ubicacion = sensor.ubicacion || 'Área General'
-        const areaId = ubicacion.toLowerCase().replace(/\s+/g, '-')
+      if (response && Array.isArray(response)) {
+        const sensoresData = response as APISensorData[]
         
-        if (!areasMap.has(areaId)) {
-          areasMap.set(areaId, {
-            id: areaId,
-            nombre: ubicacion,
-            descripcion: `Área de monitoreo - ${ubicacion}`,
-            color: '#3B82F6', // Color por defecto
-            ubicacion: ubicacion,
-            responsable: 'Por asignar',
-            fechaCreacion: new Date(),
-            estado: 'activa',
-            ultimaActividad: new Date(),
-            sensores: []
+        // Procesar datos para el mapa de áreas
+        const areasMap = new Map()
+        
+        sensoresData.forEach((sensor: APISensorData) => {
+          const ubicacion = sensor.ubicacion_sensor || 'Área General'
+          
+          if (!areasMap.has(ubicacion)) {
+            areasMap.set(ubicacion, {
+              id: ubicacion,
+              nombre: ubicacion,
+              descripcion: `Área de ${ubicacion}`,
+              color: '#3B82F6',
+              ubicacion: ubicacion,
+              responsable: 'Asignado automáticamente',
+              fechaCreacion: new Date(),
+              estado: 'activa' as const,
+              sensores: [],
+              ultimaActividad: new Date(),
+            })
+          }
+          
+          const area = areasMap.get(ubicacion)
+          area.sensores.push({
+            id: sensor.id_sensor.toString(),
+            nombre: sensor.nombre,
+            tipo: sensor.tipo as any,
+            unidad: obtenerUnidadSensor(sensor.tipo),
+            valorActual: 0, // Los valores de lectura vienen de otro endpoint
+            estado: sensor.activo ? 'activo' : 'inactivo',
+            ultimaLectura: sensor.ultima_lectura || new Date(),
+            limites: { min: 0, max: 100 }
           })
-        }
-        
-        const area = areasMap.get(areaId)!
-        area.sensores.push({
-          id: sensor.id.toString(),
-          nombre: sensor.nombre || `Sensor ${sensor.tipo}`,
-          tipo: sensor.tipo as 'temperatura' | 'humedad' | 'ph' | 'presion' | 'flujo' | 'nivel' | 'personalizado',
-          unidad: getUnidadPorTipo(sensor.tipo),
-          valorActual: getValorSensor(sensor),
-          estado: sensor.estado === 'activo' ? 'activo' : 'inactivo',
-          ultimaLectura: new Date(),
-          limites: getRangoPorTipo(sensor.tipo)
         })
-      })
-      
-      setAreas(Array.from(areasMap.values()))
-    } catch (err) {
-      console.error('Error al cargar áreas:', err)
+        
+        const areasArray = Array.from(areasMap.values())
+        setAreas(areasArray)
+      } else {
+        setError('No se pudieron cargar los sensores')
+      }
+    } catch (error) {
       setError('Error al cargar las áreas')
     } finally {
       setLoading(false)
     }
   }
 
-  // Funciones helper
-  const getValorSensor = (sensor: APISensorData): number => {
-    switch (sensor.tipo) {
-      case 'temperatura': return sensor.temperatura || 0
-      case 'humedad': return sensor.humedad_aire || sensor.humedad_suelo || 0
-      case 'ph': return sensor.ph || 7
-      case 'nutrientes': return sensor.nutrientes || 0
-      default: return 0
-    }
-  }
-
-  const getUnidadPorTipo = (tipo: string): string => {
-    switch (tipo) {
+  const obtenerUnidadSensor = (tipo: string): string => {
+    switch (tipo.toLowerCase()) {
       case 'temperatura': return '°C'
+      case 'humedad_aire':
+      case 'humedad_suelo': 
       case 'humedad': return '%'
+      case 'ph_suelo':
       case 'ph': return 'pH'
+      case 'radiacion_solar':
+      case 'radiacion': return 'W/m²'
       case 'nutrientes': return 'ppm'
       default: return ''
     }
   }
 
-  const getRangoPorTipo = (tipo: string): { min: number; max: number } => {
-    switch (tipo) {
-      case 'temperatura': return { min: 15, max: 35 }
-      case 'humedad': return { min: 40, max: 80 }
-      case 'ph': return { min: 5.5, max: 7.5 }
-      case 'nutrientes': return { min: 100, max: 500 }
-      default: return { min: 0, max: 100 }
-    }
+  const obtenerConfigSensor = (tipo: string) => {
+    const tipoNormalizado = tipo.toLowerCase()
+    const config = (tiposSensor as any)[tipoNormalizado]
+    return config || tiposSensor.default
   }
+
+  const obtenerValorSensor = (sensor: APISensorData, tipo: string): number => {
+    // Los valores de lecturas vienen de otro endpoint separado
+    return 0
+  }
+
+  // Funciones helper
+
 
   // Cargar datos al montar el componente
   useEffect(() => {
-    fetchAreas()
-  }, [])
+    cargarDatos()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const createArea = async (areaData: Partial<Area>) => {
     // TODO: Implementar creación de área
@@ -244,7 +251,7 @@ export default function AreasEmpresaPage() {
         </div>
         <div className="flex space-x-3">
           <button
-            onClick={() => {/* TODO: Implementar modal para agregar sensor directamente */}}
+            onClick={() => alert('Funcionalidad de añadir sensor en desarrollo. Por ahora puedes ver los sensores existentes en las áreas.')}
             className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             <Activity className="h-4 w-4 mr-2" />
@@ -328,9 +335,43 @@ export default function AreasEmpresaPage() {
         </div>
       </div>
 
+      {/* Estados de carga */}
+      {loading && (
+        <div className="text-center py-8">
+          <div className="inline-flex items-center">
+            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Cargando sensores...
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+          <p className="text-red-800 dark:text-red-200">{error}</p>
+          <button 
+            onClick={cargarDatos}
+            className="mt-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          >
+            Reintentar
+          </button>
+        </div>
+      )}
+
+      {!loading && !error && areasFiltradas.length === 0 && (
+        <div className="text-center py-8">
+          <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-600 dark:text-gray-400">No hay sensores configurados aún.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">Los sensores se agruparán automáticamente por área cuando se detecten.</p>
+        </div>
+      )}
+
       {/* Lista de áreas */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {areasFiltradas.map((area) => {
+      {!loading && !error && areasFiltradas.length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          {areasFiltradas.map((area) => {
           const EstadoIcon = estadosArea[area.estado].icon
           const estadoConfig = estadosArea[area.estado]
           
@@ -386,8 +427,9 @@ export default function AreasEmpresaPage() {
                 </h4>
                 <div className="space-y-1">
                   {area.sensores.slice(0, 3).map((sensor) => {
-                    const SensorIcon = tiposSensor[sensor.tipo].icon
-                    const sensorColor = tiposSensor[sensor.tipo].color
+                    const sensorConfig = obtenerConfigSensor(sensor.tipo)
+                    const SensorIcon = sensorConfig.icon
+                    const sensorColor = sensorConfig.color
                     
                     return (
                       <div key={sensor.id} className="flex items-center justify-between text-xs">
@@ -423,7 +465,7 @@ export default function AreasEmpresaPage() {
                   Editar
                 </button>
                 <button
-                  onClick={() => {/* TODO: Implementar vista de sensores */}}
+                  onClick={() => setAreaSeleccionada(area)}
                   className="flex-1 flex items-center justify-center px-3 py-2 text-sm text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
                 >
                   <Eye className="h-4 w-4 mr-1" />
@@ -438,8 +480,19 @@ export default function AreasEmpresaPage() {
               </div>
             </div>
           )
-        })}
-      </div>
+          })}
+        </div>
+      )}
+
+      {/* Modal de sensores */}
+      {areaSeleccionada && (
+        <SensorsModal
+          areaId={areaSeleccionada.id}
+          areaName={areaSeleccionada.nombre}
+          isOpen={!!areaSeleccionada}
+          onClose={() => setAreaSeleccionada(null)}
+        />
+      )}
 
       {/* Modal para crear/editar área */}
       {mostrarModal && (

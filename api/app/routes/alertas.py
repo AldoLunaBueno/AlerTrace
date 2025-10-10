@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
 from ..database.connection import get_db
-from ..models.database import Trabajador, Alerta, Sensor
+from ..models.database import Trabajador, Empresa, Alerta, Sensor
 from ..auth.dependencies import get_current_user
 
 router = APIRouter(
@@ -22,12 +22,23 @@ def get_alertas(
     limit: int = 100,
     estado: Optional[str] = None,
     severidad: Optional[str] = None,
-    current_user: Trabajador = Depends(get_current_user),
+    current_user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Obtener lista de alertas de la empresa"""
+    """Obtener lista de alertas según el tipo de usuario"""
     try:
         from sqlalchemy import text
+        
+        # Determinar empresa_id según el tipo de usuario
+        if isinstance(current_user, Trabajador):
+            empresa_id = current_user.id_empresa
+        elif isinstance(current_user, Empresa):
+            empresa_id = current_user.id_empresa
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Tipo de usuario no válido"
+            )
         
         # Usar consulta simple para evitar problemas
         estado_filter = ""
@@ -45,7 +56,7 @@ def get_alertas(
             ORDER BY COALESCE(fecha_creacion, NOW()) DESC
             LIMIT :limit OFFSET :skip
         """), {
-            "empresa_id": current_user.id_empresa,
+            "empresa_id": empresa_id,
             "limit": limit,
             "skip": skip
         })
