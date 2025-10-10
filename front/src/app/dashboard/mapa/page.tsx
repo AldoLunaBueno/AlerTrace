@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { MapPin, Navigation } from 'lucide-react'
-import { api } from '@/lib/api'
+import { mockApi } from '@/lib/mockData'
 import { LoadingSpinner } from '@/components/shared/loading-spinner'
 import type { SensorResponse, CultivoResponse } from '@/types'
 
@@ -20,8 +20,8 @@ export default function MapaPage() {
     try {
       setIsLoading(true)
       const [sensoresData, cultivosData] = await Promise.all([
-        api.sensors.getSensors(),
-        api.cultivos.getCultivos()
+        mockApi.getSensores(),
+        mockApi.getCultivos()
       ])
       setSensores(sensoresData)
       setCultivos(cultivosData)

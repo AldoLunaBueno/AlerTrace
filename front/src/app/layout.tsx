@@ -7,7 +7,7 @@ import { Providers } from '@/components/providers'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'SachaTrace - Sistema de Trazabilidad Agrícola',
+  title: 'AlerTrace - Sistema de Trazabilidad Agrícola',
   description: 'Plataforma de monitoreo y control para cultivos agrícolas con IoT',
   manifest: '/manifest.json',
   icons: {

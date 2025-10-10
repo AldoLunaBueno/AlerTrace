@@ -1,7 +1,7 @@
 {
   "name": "@sachatrace/frontend",
   "version": "1.0.0",
-  "description": "Frontend para SachaTrace - Sistema de Trazabilidad Agrícola",
+  "description": "Frontend para AlerTrace - Sistema de Trazabilidad Agrícola",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -21,6 +21,7 @@
     "axios": "^1.6.8",
     "clsx": "^2.1.1",
     "leaflet": "^1.9.4",
+    "lottie-react": "2.4.1",
     "lucide-react": "^0.378.0",
     "next": "^14.2.0",
     "react": "^18.3.1",

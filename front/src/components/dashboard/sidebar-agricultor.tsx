@@ -8,13 +8,13 @@ import {
   AlertTriangle, 
   BarChart3,
   Settings,
-  Sprout,
   LogOut,
   User,
   MapPin,
   Calendar,
   Thermometer
 } from 'lucide-react'
+import { AlertRaceLogo } from '../AlertRaceLogo'
 
 export function SidebarAgricultor() {
   const pathname = usePathname()
@@ -40,19 +40,16 @@ export function SidebarAgricultor() {
     <div className="w-64 bg-white dark:bg-gray-800 shadow-lg h-screen fixed left-0 top-0 z-40">
       {/* Logo y título */}
       <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center space-x-3">
-          <div className="bg-green-100 dark:bg-green-900/20 p-2 rounded-lg">
-            <Sprout className="h-6 w-6 text-green-600 dark:text-green-400" />
-          </div>
-          <div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-              SachaTrace
-            </h2>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              Campo Agrícola
-            </p>
-          </div>
-        </div>
+        <Link href="/dashboard-agricultor" className="flex items-center">
+          <AlertRaceLogo 
+            width={120} 
+            height={30} 
+            className="h-6 w-auto"
+          />
+        </Link>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 ml-1">
+          Campo Agrícola
+        </p>
       </div>
       
       {/* Navegación */}
