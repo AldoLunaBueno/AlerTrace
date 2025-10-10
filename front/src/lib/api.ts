@@ -457,6 +457,10 @@ export const api = {
     
     async getSensorData(sensorId: string) {
       return apiRequest(`${API_BASE_URL}/sensores/${sensorId}/lecturas`)
+    },
+
+    async getLatestReadings() {
+      return apiRequest(`${API_BASE_URL}/sensores/with-readings`)
     }
   }
 }

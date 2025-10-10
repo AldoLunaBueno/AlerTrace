@@ -20,6 +20,7 @@ import {
   Clock,
   XCircle
 } from 'lucide-react'
+import { SensorsModal } from '@/components/dashboard/SensorsModal'
 import { api } from '@/lib/api'
 import type { SensorResponse as APISensorData } from '@/types'
 
@@ -464,7 +465,7 @@ export default function AreasEmpresaPage() {
                   Editar
                 </button>
                 <button
-                  onClick={() => {/* TODO: Implementar vista de sensores */}}
+                  onClick={() => setAreaSeleccionada(area)}
                   className="flex-1 flex items-center justify-center px-3 py-2 text-sm text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
                 >
                   <Eye className="h-4 w-4 mr-1" />
@@ -481,6 +482,16 @@ export default function AreasEmpresaPage() {
           )
           })}
         </div>
+      )}
+
+      {/* Modal de sensores */}
+      {areaSeleccionada && (
+        <SensorsModal
+          areaId={areaSeleccionada.id}
+          areaName={areaSeleccionada.nombre}
+          isOpen={!!areaSeleccionada}
+          onClose={() => setAreaSeleccionada(null)}
+        />
       )}
 
       {/* Modal para crear/editar área */}
