@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "NODE_ENV=development next dev",
-    "dev:prod": "NODE_ENV=production next dev",
+    "dev:prod": "dotenv -e .env.production.local -- next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -37,6 +37,7 @@
     "@typescript-eslint/eslint-plugin": "^7.7.0",
     "@typescript-eslint/parser": "^7.7.0",
     "autoprefixer": "^10.4.19",
+    "dotenv-cli": "10.0.0",
     "eslint": "^8.57.0",
     "eslint-config-next": "^14.2.0",
     "postcss": "^8.4.38",
