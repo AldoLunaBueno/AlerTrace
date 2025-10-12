@@ -117,8 +117,7 @@
   }
 }
 
-/* Leaflet CSS */
-@import 'leaflet/dist/leaflet.css';
+/* Leaflet CSS is imported in layout.tsx */
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {

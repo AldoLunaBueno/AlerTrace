@@ -3,7 +3,8 @@
 import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { 
-  LayoutDashboard, 
+  LayoutDashboard,
+  Factory,
   Package, 
   Activity, 
   AlertTriangle, 

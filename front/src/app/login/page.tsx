@@ -109,7 +109,7 @@ export default function LoginPage() {
     
     try {
       // Llamada real al API del backend
-      const response = await fetch('http://localhost:8002/auth/login', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -129,7 +129,7 @@ export default function LoginPage() {
         localStorage.setItem('userId', data.user_id)
         
         // Obtener información del usuario para determinar el tipo real
-        const userResponse = await fetch('http://localhost:8002/auth/me', {
+        const userResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
           headers: {
             'Authorization': `Bearer ${data.access_token}`
           }
