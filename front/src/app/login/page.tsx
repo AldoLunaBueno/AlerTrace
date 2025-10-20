@@ -109,13 +109,14 @@ export default function LoginPage() {
     
     try {
       // Llamada real al API del backend
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8002'
+      const response = await fetch(`${apiUrl}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          username: loginData.email,
+          email: loginData.email,
           password: loginData.password
         })
       })
@@ -129,7 +130,7 @@ export default function LoginPage() {
         localStorage.setItem('userId', data.user_id)
         
         // Obtener información del usuario para determinar el tipo real
-        const userResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
+        const userResponse = await fetch(`${apiUrl}/auth/me`, {
           headers: {
             'Authorization': `Bearer ${data.access_token}`
           }
@@ -137,9 +138,11 @@ export default function LoginPage() {
         
         if (userResponse.ok) {
           const userData = await userResponse.json()
-          const realUserType = userData.user_type // 'trabajador' o 'empresa'
+          // El rol del usuario determina el tipo: 'admin_empresa' o 'agricultor'
+          const isEmpresa = userData.rol && userData.rol.includes('empresa')
+          const realUserType = isEmpresa ? 'empresa' : 'trabajador'
           
-            // VALIDACIÓN CRÍTICA: Verificar que el tipo de usuario coincida con la pestaña seleccionada
+          // VALIDACIÓN CRÍTICA: Verificar que el tipo de usuario coincida con la pestaña seleccionada
           const expectedUserType = loginData.tipoUsuario === 'industria' ? 'empresa' : 'trabajador'
           
           if (realUserType !== expectedUserType) {
@@ -158,10 +161,14 @@ export default function LoginPage() {
             
             setIsLoading(false)
             return
-          }          // Guardar el tipo real del usuario
+          }
+          
+          // Guardar el tipo real del usuario
           localStorage.setItem('userType', realUserType === 'empresa' ? 'industria' : 'agricultor')
-          localStorage.setItem('userRole', userData.role)
-          localStorage.setItem('userName', userData.nombre || userData.username)
+          localStorage.setItem('userRole', userData.rol)
+          localStorage.setItem('userName', userData.nombre || userData.email)
+          localStorage.setItem('idTrabajador', userData.id_trabajador)
+          localStorage.setItem('idEmpresa', userData.id_empresa)
           
           // Redirigir al dashboard correspondiente basado en el tipo REAL
           if (realUserType === 'empresa') {

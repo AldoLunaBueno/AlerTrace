@@ -1,11 +1,50 @@
 """
 Modelos Pydantic para validación de datos de sensores IoT
 """
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, EmailStr, ConfigDict
 from typing import Optional
 from datetime import datetime, date
 from decimal import Decimal
 from enum import Enum
+import uuid
+
+class EmpresaCreate(BaseModel):
+    """Schema para la creación de una empresa durante el registro."""
+    ruc: str
+    razon_social: str
+    email: EmailStr
+
+class UserCreate(BaseModel):
+    """Schema para el registro de un nuevo usuario (administrador de empresa)."""
+    email: EmailStr
+    password: str
+    nombre: str
+    apellido: str
+    dni: str
+    empresa: EmpresaCreate
+
+class Token(BaseModel):
+    """Schema para la respuesta del token de acceso."""
+    access_token: str
+    token_type: str
+
+class UserProfile(BaseModel):
+    """
+    Schema para devolver el perfil completo del usuario.
+    """
+    id_trabajador: int
+    user_id: uuid.UUID
+    nombre: str
+    apellido: str
+    email: EmailStr
+    rol: str
+    id_empresa: int
+    empresa_nombre: str
+
+    model_config = ConfigDict(from_attributes=True) # Para Pydantic v2
+    # Para Pydantic v1, usa:
+    # class Config:
+    #     orm_mode = True
 
 
 class LotState(str, Enum):

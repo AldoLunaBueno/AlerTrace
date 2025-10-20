@@ -8,3 +8,7 @@ pydantic==2.5.0
 pydantic-settings==2.1.0
 python-dotenv==1.0.0
 tuya-connector-python==0.1.2
+supabase>=2.0.0
+gotrue>=2.0.0
+email-validator>=2.0.0
+python-multipart>=0.0.5

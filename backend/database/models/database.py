@@ -1,9 +1,10 @@
-from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime, Float, Text, DECIMAL, ForeignKey, UniqueConstraint, BIGINT, Date
+from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime, Float, Text, DECIMAL, ForeignKey, UniqueConstraint, BIGINT, Date, UUID
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session, relationship
 from sqlalchemy.sql import func
 from api.config import settings
 import datetime
+import uuid
 
 engine = create_engine(settings.database_url)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -15,18 +16,16 @@ class Empresa(Base):
     __tablename__ = "empresas"
     
     id_empresa = Column(Integer, primary_key=True, index=True)
-    ruc = Column(String(11), unique=True, nullable=False, index=True)  # RUC (identificador único de empresa)
-    nombre_empresa = Column(String(200), nullable=False)
-    email = Column(String(100), unique=True, nullable=False, index=True)
-    telefono = Column(String(20))
-    password_hash = Column(String(255), nullable=False)
-    estado = Column(String(20), default="activa", index=True)  # activa, suspendida, inactiva
-    sensores_disponibles = Column(Integer, default=0)  # Límite de sensores disponibles
-    fecha_registro = Column(DateTime(timezone=True), server_default=func.now())
-    smart_account_address = Column(String(42), unique=True, nullable=True, index=True)
+    ruc = Column(String(11), unique=True, nullable=False, index=True)
+    razon_social = Column(String(255), nullable=False)
+    email = Column(String(255), unique=True, nullable=False, index=True)
+    telefono = Column(String(20), nullable=True)
+    direccion = Column(Text, nullable=True)
+    estado = Column(String(20), default="activo", index=True)
+    smart_account_address = Column(String(42), nullable=True, index=True)
     signer_address = Column(String(42), nullable=True)
-    blockchain_role = Column(String(20), nullable=True)
     blockchain_active = Column(Boolean, default=False)
+    fecha_registro = Column(DateTime(timezone=True), server_default=func.now())
     
     # Relaciones
     trabajadores = relationship("Trabajador", back_populates="empresa", cascade="all, delete-orphan")
@@ -41,15 +40,17 @@ class Trabajador(Base):
     
     id_trabajador = Column(Integer, primary_key=True, index=True)
     id_empresa = Column(Integer, ForeignKey("empresas.id_empresa", ondelete="CASCADE"), nullable=False)
-    dni = Column(String(8), unique=True, nullable=False, index=True)  # DNI (documento de identidad)
-    email = Column(String(100), unique=True, nullable=True, index=True)  # Email para inicio de sesión
-    nombre_completo = Column(String(200), nullable=False)
-    password_hash = Column(String(255), nullable=False)
-    rol = Column(String(20), default="worker", index=True)  # admin, supervisor, worker
-    activo = Column(Boolean, default=True, index=True)
-    fecha_creacion = Column(DateTime(timezone=True), server_default=func.now())
+    nombre = Column(String(255), nullable=False)
+    apellido = Column(String(255), nullable=False)
+    dni = Column(String(8), unique=True, nullable=False, index=True)
+    email = Column(String(255), unique=True, nullable=True, index=True)
+    telefono = Column(String(20), nullable=True)
+    rol = Column(String(50), nullable=False, index=True)
+    user_id = Column(UUID(as_uuid=True), unique=True, nullable=True, index=True)  # UUID de Supabase Auth
     smart_account_address = Column(String(42), unique=True, nullable=True, index=True)
-    signer_address = Column(String(42), nullable=True)
+    blockchain_role = Column(String(20), nullable=True)
+    activo = Column(Boolean, default=True, index=True)
+    fecha_contratacion = Column(Date, default=func.current_date())
     
     # Relaciones
     empresa = relationship("Empresa", back_populates="trabajadores")

@@ -37,7 +37,7 @@ app.add_middleware(
 )
 
 # Incluir routers
-app.include_router(auth.router)
+app.include_router(auth.router, prefix="/auth", tags=["Auth"])
 app.include_router(sensores_router)
 app.include_router(cultivos_router)
 app.include_router(dashboard_router)
@@ -63,7 +63,7 @@ def root():
 @app.on_event("startup")
 def startup_event():
     """Evento que se ejecuta al iniciar la aplicación"""
-    init_worker()
+    # init_worker()
 
 
 if __name__ == "__main__":

@@ -1,46 +1,42 @@
 import os
-from typing import Optional, List
 from pydantic_settings import BaseSettings
-from pydantic import field_validator
 
 class Settings(BaseSettings):
-    """Configuración de la aplicación usando variables de entorno"""
-    app_name: str = "SachaTrace API"
-    app_version: str = "1.0.0"
+    """
+    Configuración centralizada de la aplicación que carga variables de entorno.
+    """
+    app_name: str = "Alertrace API"
+    app_version: str = "2.1.0"
     environment: str = "production"
-    debug: bool = False
-    log_level: str = "INFO"
     
+    # --- Credenciales para la conexión directa a la Base de Datos PostgreSQL ---
     postgres_host: str
     postgres_port: int
     postgres_user: str
     postgres_password: str
     postgres_db: str
     
-    # Configuración JWT
+    # --- Credenciales para los servicios de la API de Supabase (Autenticación) ---
+    supabase_url: str
+    supabase_key: str
+
+    # --- Configuración JWT (manejada por Supabase, pero útil tenerla si es necesario) ---
     jwt_secret_key: str
     jwt_algorithm: str = "HS256"
-    jwt_access_token_expire_minutes: int = 30
-    
+    jwt_access_token_expire_minutes: int = 60
+
     @property
     def database_url(self) -> str:
-        """Construir URL de conexión a PostgreSQL con SSL para Supabase"""
-        base_url = f"postgresql://{self.postgres_user}:{self.postgres_password}@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
-        return f"{base_url}?sslmode=require&target_session_attrs=read-write"
-    
-    model_config = {
-        "env_file": [
-            os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), ".env"),  # .env raíz
-            ".env"  # Fallback a .env local
-        ],
-        "env_file_encoding": "utf-8",
-        "case_sensitive": False,
-        "extra": "ignore"  # Ignorar variables extra del .env
-    }
+        """
+        Construye la URL de conexión a PostgreSQL.
+        """
+        return f"postgresql://{self.postgres_user}:{self.postgres_password}@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
 
-def get_settings() -> Settings:
-    """Factory para obtener la configuración de la aplicación"""
-    return Settings()
+    class Config:
+        # Busca el archivo .env en la raíz del proyecto
+        env_file = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), ".env")
+        env_file_encoding = "utf-8"
+        extra = "ignore" # Ignora variables extra en el .env que no estén definidas aquí
 
-# Instancia global de configuración
-settings = get_settings()
+# Instancia global de la configuración para ser usada en toda la aplicación
+settings = Settings()
