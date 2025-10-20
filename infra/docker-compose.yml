@@ -1,30 +1,17 @@
 services:
-  # Redis para caché y sesiones
-  redis:
-    image: redis:7-alpine
-    container_name: mallkitrace_redis
-    ports:
-      - "6379:6379"
-    command: redis-server --appendonly yes
-    volumes:
-      - redis_data:/data
-
-  # API FastAPI - Usando AWS RDS PostgreSQL
+  # API FastAPI
   api:
     build: 
-      context: ../api
+      context: ../backend
       dockerfile: Dockerfile
-    container_name: mallkitrace_api
+    container_name: alertrace_api
     env_file:
-      - ../.env  # Cargar todas las variables del .env incluyendo AWS RDS
+      - ../.env
     ports:
       - "8002:8000"
     volumes:
-      - ../api:/app
-    depends_on:
-      redis:
-        condition: service_started
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+      - ../backend:/app
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
     restart: unless-stopped
 
   # Frontend Next.js
@@ -32,7 +19,7 @@ services:
     build:
       context: ../front
       dockerfile: Dockerfile
-    container_name: mallkitrace_frontend
+    container_name: alertrace_frontend
     ports:
       - "3000:8080"
     volumes:
@@ -41,8 +28,6 @@ services:
     depends_on:
       - api
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8002
+      - NEXT_PUBLIC_API_BASE_URL=http://localhost:8002
+      - NEXT_PUBLIC_WRITE_API_URL=http://localhost:8002
     restart: unless-stopped
-
-volumes:
-  redis_data:

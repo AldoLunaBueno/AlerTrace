@@ -3,6 +3,7 @@
 import { SidebarAgricultor } from '@/components/dashboard/sidebar-agricultor'
 import { NotificationsDropdown } from '@/components/shared/notifications-dropdown'
 import { BottomNavAgricultor } from '@/components/mobile/bottom-nav-agricultor'
+import { AlertRaceLogo } from '@/components/AlertRaceLogo'
 import RouteGuard from '@/components/shared/route-guard'
 
 export default function DashboardAgricultorLayout({
@@ -27,10 +28,16 @@ export default function DashboardAgricultorLayout({
               <div className="flex justify-between h-16">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <h1 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">
-                      <span className="hidden sm:inline">SachaTrace - Mi Campo</span>
-                      <span className="sm:hidden">Mi Campo</span>
-                    </h1>
+                    <div className="flex items-center space-x-3">
+                      <AlertRaceLogo 
+                        width={100} 
+                        height={25} 
+                        className="h-5 w-auto"
+                      />
+                      <span className="hidden sm:inline text-lg md:text-xl font-bold text-gray-900 dark:text-white">
+                        Mi Campo
+                      </span>
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center space-x-4">

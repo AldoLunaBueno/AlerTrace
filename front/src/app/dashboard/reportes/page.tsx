@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { BarChart3, Download, Calendar, TrendingUp, Activity } from 'lucide-react'
-import { api } from '@/lib/api'
+import { mockApi } from '@/lib/mockData'
 import { LoadingSpinner } from '@/components/shared/loading-spinner'
 
 export default function ReportesPage() {

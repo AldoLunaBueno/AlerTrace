@@ -83,17 +83,17 @@ export default function AlertasEmpresaPage() {
         
         // Convertir datos de la API
         const alertasFormatted: Alerta[] = alertasData.map(alerta => ({
-          id: alerta.id.toString(),
+          id: alerta.id_alerta.toString(),
           tipo: mapSeveridadToTipo(alerta.severidad),
-          titulo: generateTitulo(alerta),
+          titulo: alerta.titulo || generateTitulo(alerta),
           descripcion: alerta.mensaje,
-          equipo: getEquipoFromSensor(alerta.sensor_id),
+          equipo: getEquipoFromSensor(alerta.id_sensor),
           ubicacion: 'Área de Producción', // Por defecto
           fechaHora: new Date(alerta.fecha_creacion),
-          leida: alerta.estado === 'vista' || alerta.estado === 'resuelta',
-          variable: alerta.tipo,
+          leida: alerta.resuelta === true,
+          variable: alerta.tipo_alerta,
           valor: 0, // No disponible en la API
-          unidad: getUnidadByType(alerta.tipo),
+          unidad: getUnidadByType(alerta.tipo_alerta),
           limite: 0 // No disponible en la API
         }))
         

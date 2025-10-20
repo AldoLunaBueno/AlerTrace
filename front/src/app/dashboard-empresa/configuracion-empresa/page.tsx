@@ -51,7 +51,7 @@ export default function ConfiguracionEmpresaPage() {
         setLoading(true)
         setError(null)
         
-        const userData = await api.auth.getCurrentUser()
+        const userData = await api.auth.getMe() as any
         
         // Convertir datos de la API al formato esperado para empresa
         setPerfil({

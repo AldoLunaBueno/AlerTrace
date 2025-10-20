@@ -15,6 +15,7 @@ import {
   Sprout
 } from 'lucide-react'
 import Link from 'next/link'
+import LottieAnimation from '@/components/LottieAnimation'
 
 interface LoginData {
   email: string
@@ -46,7 +47,7 @@ export default function LoginPage() {
         primaryBg: 'bg-blue-50',
         primaryBorder: 'border-blue-200',
         primaryRing: 'ring-blue-500',
-        primaryHover: 'hover:bg-blue-700',
+        primaryHover: 'hover:text-blue-800',
         primaryFocus: 'focus:ring-blue-500'
       }
     } else {
@@ -59,7 +60,7 @@ export default function LoginPage() {
         primaryBg: 'bg-green-50',
         primaryBorder: 'border-green-200',
         primaryRing: 'ring-green-500',
-        primaryHover: 'hover:bg-green-700',
+        primaryHover: 'hover:text-green-800',
         primaryFocus: 'focus:ring-green-500'
       }
     }
@@ -108,13 +109,14 @@ export default function LoginPage() {
     
     try {
       // Llamada real al API del backend
-      const response = await fetch('http://localhost:8002/auth/login', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8002'
+      const response = await fetch(`${apiUrl}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          username: loginData.email,
+          email: loginData.email,
           password: loginData.password
         })
       })
@@ -128,7 +130,7 @@ export default function LoginPage() {
         localStorage.setItem('userId', data.user_id)
         
         // Obtener información del usuario para determinar el tipo real
-        const userResponse = await fetch('http://localhost:8002/auth/me', {
+        const userResponse = await fetch(`${apiUrl}/auth/me`, {
           headers: {
             'Authorization': `Bearer ${data.access_token}`
           }
@@ -136,9 +138,11 @@ export default function LoginPage() {
         
         if (userResponse.ok) {
           const userData = await userResponse.json()
-          const realUserType = userData.user_type // 'trabajador' o 'empresa'
+          // El rol del usuario determina el tipo: 'admin_empresa' o 'agricultor'
+          const isEmpresa = userData.rol && userData.rol.includes('empresa')
+          const realUserType = isEmpresa ? 'empresa' : 'trabajador'
           
-            // VALIDACIÓN CRÍTICA: Verificar que el tipo de usuario coincida con la pestaña seleccionada
+          // VALIDACIÓN CRÍTICA: Verificar que el tipo de usuario coincida con la pestaña seleccionada
           const expectedUserType = loginData.tipoUsuario === 'industria' ? 'empresa' : 'trabajador'
           
           if (realUserType !== expectedUserType) {
@@ -157,10 +161,14 @@ export default function LoginPage() {
             
             setIsLoading(false)
             return
-          }          // Guardar el tipo real del usuario
+          }
+          
+          // Guardar el tipo real del usuario
           localStorage.setItem('userType', realUserType === 'empresa' ? 'industria' : 'agricultor')
-          localStorage.setItem('userRole', userData.role)
-          localStorage.setItem('userName', userData.nombre || userData.username)
+          localStorage.setItem('userRole', userData.rol)
+          localStorage.setItem('userName', userData.nombre || userData.email)
+          localStorage.setItem('idTrabajador', userData.id_trabajador)
+          localStorage.setItem('idEmpresa', userData.id_empresa)
           
           // Redirigir al dashboard correspondiente basado en el tipo REAL
           if (realUserType === 'empresa') {
@@ -184,25 +192,34 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
-      <div className="max-w-md w-full">
-        {/* Botón de regreso */}
-        <Link 
-          href="/"
-          className="inline-flex items-center text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 mb-6 transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Volver al inicio
-        </Link>
+    <div className="h-screen bg-[#81D4FF] dark:from-gray-900 dark:to-gray-800">
+        <div className="w-full h-full flex gap-8 items-stretch p-8">
+          {/* Columna de animación */}
+          <div className="w-full hidden lg:block h-full">
+            <LottieAnimation
+              className="w-full h-full"
+            />
+          </div>
 
-        {/* Tarjeta de login */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
+        {/* Columna del formulario */}
+        <div className="w-fit h-full flex flex-col justify-center">
+          {/* Botón de regreso */}
+          <Link 
+            href="/"
+            className="inline-flex items-center text-white hover:text-white/80 dark:text-white dark:hover:text-white/80 mb-6 transition-colors text-lg font-semibold"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Volver al inicio
+          </Link>
+
+          {/* Tarjeta de login */}
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 w-full w-[448px]">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
               Iniciar Sesión
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
-              Accede a tu plataforma SachaTrace
+              Accede a tu plataforma AlerTrace
             </p>
           </div>
 
@@ -357,7 +374,7 @@ export default function LoginPage() {
                   Recordarme
                 </label>
               </div>
-              <Link href="/forgot-password" className={`text-sm ${colors.primaryText} ${colors.primaryHover} dark:text-green-400 dark:hover:text-green-300`}>
+              <Link href="/forgot-password" className={`text-sm ${colors.primaryText} ${colors.primaryHover}`}>
                 ¿Olvidaste tu contraseña?
               </Link>
             </div>
@@ -402,6 +419,7 @@ export default function LoginPage() {
                 Crear cuenta
               </Link>
             </p>
+          </div>
           </div>
         </div>
       </div>

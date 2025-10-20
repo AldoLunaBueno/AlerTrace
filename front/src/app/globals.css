@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700;800;900&display=swap');
+
 /* Variables CSS para esquemas de color diferenciados */
 :root {
   /* Colores para Dashboard Empresa (Industrial) */
@@ -115,8 +117,7 @@
   }
 }
 
-/* Leaflet CSS */
-@import 'leaflet/dist/leaflet.css';
+/* Leaflet CSS is imported in layout.tsx */
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {

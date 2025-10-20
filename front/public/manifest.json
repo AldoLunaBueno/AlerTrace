@@ -1,6 +1,6 @@
 {
-  "name": "SachaTrace - Sistema de Trazabilidad Agrícola",
-  "short_name": "SachaTrace",
+  "name": "AlerTrace - Sistema de Trazabilidad Agrícola",
+  "short_name": "AlerTrace",
   "description": "Plataforma de monitoreo y control para cultivos agrícolas con IoT",
   "start_url": "/",
   "display": "standalone",
@@ -9,15 +9,9 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/icon-192x192.png",
+      "src": "/icon-192x192.svg",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/icon-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any maskable"
     }
   ],

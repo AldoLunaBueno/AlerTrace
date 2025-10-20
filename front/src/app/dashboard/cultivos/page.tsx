@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Plus, Search, Filter, MapPin, Calendar } from 'lucide-react'
-import { api } from '@/lib/api'
+import { mockApi } from '@/lib/mockData'
 import { LoadingSpinner } from '@/components/shared/loading-spinner'
 import { formatDate, getStatusColor } from '@/lib/utils'
 import type { CultivoResponse } from '@/types'
@@ -20,7 +20,7 @@ export default function CultivosPage() {
   const loadCultivos = async () => {
     try {
       setIsLoading(true)
-      const data = await api.cultivos.getCultivos()
+      const data = await mockApi.getCultivos()
       setCultivos(data)
     } catch (error) {
       console.error('Error loading cultivos:', error)
