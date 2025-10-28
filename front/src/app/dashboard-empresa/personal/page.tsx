@@ -44,7 +44,7 @@ export default function PersonalEmpresaPage() {
       try {
         setLoading(true)
         const data = await api.dashboard.getTrabajadores()
-        setUsers(data)
+        setUsers(data as PersonalUser[])
         setError(null)
       } catch (err) {
         console.error('Error al cargar trabajadores:', err)

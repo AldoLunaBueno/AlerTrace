@@ -50,7 +50,7 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Colores específicos para SachaTrace
+        // Colores específicos para AlerTrace
         sacha: {
           50: '#f0fdf4',
           100: '#dcfce7',

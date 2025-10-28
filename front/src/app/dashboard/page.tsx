@@ -8,7 +8,8 @@ import { CultivosActivos } from '@/components/dashboard/cultivos-activos'
 import { AlertasResumen } from '@/components/dashboard/alertas-resumen'
 import { SensoresStatus } from '@/components/dashboard/sensores-status'
 import { LoadingSpinner } from '@/components/shared/loading-spinner'
-import { api } from '@/lib/api'
+import { mockApi } from '@/lib/mockData'
+import { useAuth } from '@/lib/hooks/useLocalStorage'
 import type { KpiData } from '@/types'
 
 export default function DashboardPage() {
@@ -16,22 +17,22 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
+  const { isAuthenticated } = useAuth()
 
   useEffect(() => {
     // Verificar autenticación
-    const token = localStorage.getItem('token')
-    if (!token) {
+    if (!isAuthenticated) {
       router.push('/login')
       return
     }
 
     loadDashboardData()
-  }, [router])
+  }, [router, isAuthenticated])
 
   const loadDashboardData = async () => {
     try {
       setIsLoading(true)
-      const kpis = await api.dashboard.getKpis()
+      const kpis = await mockApi.getKpis()
       setKpiData(kpis)
       setError(null)
     } catch (error) {

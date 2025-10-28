@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { AlertTriangle, CheckCircle, X } from 'lucide-react'
-import { api } from '@/lib/api'
+import { mockApi } from '@/lib/mockData'
 import { LoadingSpinner } from '@/components/shared/loading-spinner'
 import { formatDateTime, getSeverityColor } from '@/lib/utils'
 import type { AlertaResponse } from '@/types'
@@ -18,7 +18,7 @@ export function AlertasResumen() {
   const loadAlertas = async () => {
     try {
       setIsLoading(true)
-      const data = await api.alertas.getAlertas()
+      const data = await mockApi.getAlertas()
       // Mostrar solo las alertas no resueltas
       setAlertas(data.filter(alerta => !alerta.resuelta))
     } catch (error) {
@@ -30,7 +30,7 @@ export function AlertasResumen() {
 
   const handleResolveAlerta = async (alertaId: number) => {
     try {
-      await api.alertas.resolveAlerta(alertaId)
+      await mockApi.resolveAlerta(alertaId)
       // Actualizar la lista local
       setAlertas(alertas.filter(alerta => alerta.id_alerta !== alertaId))
     } catch (error) {

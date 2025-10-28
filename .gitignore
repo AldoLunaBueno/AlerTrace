@@ -285,3 +285,6 @@ deployment-keys/
 
 # Mantener estructura de directorios vacíos
 !.gitkeep
+
+# TestSprite (ignorar artefactos y archivos generados)
+testsprite_tests/

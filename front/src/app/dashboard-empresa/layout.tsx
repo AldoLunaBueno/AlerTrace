@@ -3,7 +3,11 @@
 import { SidebarEmpresa } from '@/components/dashboard/sidebar-empresa'
 import { NotificationsDropdown } from '@/components/shared/notifications-dropdown'
 import { BottomNavEmpresa } from '@/components/mobile/bottom-nav-empresa'
+<<<<<<< HEAD
+import { AlertRaceLogo } from '@/components/AlertRaceLogo'
+=======
 import RouteGuard from '@/components/shared/route-guard'
+>>>>>>> 87207c5437ec1ce312e89e2145007324c8710247
 
 export default function DashboardEmpresaLayout({
   children,
@@ -27,10 +31,16 @@ export default function DashboardEmpresaLayout({
               <div className="flex justify-between h-16">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <h1 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">
-                      <span className="hidden sm:inline">SachaTrace - Sistema Industrial</span>
-                      <span className="sm:hidden">Sistema Industrial</span>
-                    </h1>
+                    <div className="flex items-center space-x-3">
+                      <AlertRaceLogo 
+                        width={100} 
+                        height={25} 
+                        className="h-5 w-auto"
+                      />
+                      <span className="hidden sm:inline text-lg md:text-xl font-bold text-gray-900 dark:text-white">
+                        Sistema Industrial
+                      </span>
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center space-x-4">
