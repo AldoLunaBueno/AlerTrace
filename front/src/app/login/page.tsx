@@ -12,7 +12,9 @@ import {
   AlertCircle,
   CheckCircle,
   Factory,
-  Sprout
+  Sprout,
+  Send,
+  X
 } from 'lucide-react'
 import Link from 'next/link'
 import LottieAnimation from '@/components/LottieAnimation'
@@ -34,6 +36,11 @@ export default function LoginPage() {
   const [errors, setErrors] = useState<Partial<LoginData>>({})
   const [isLoading, setIsLoading] = useState(false)
   const [loginError, setLoginError] = useState('')
+  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false)
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('')
+  const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false)
+  const [forgotPasswordSent, setForgotPasswordSent] = useState(false)
+  const [forgotPasswordError, setForgotPasswordError] = useState('')
 
   // Colores dinámicos según el tipo de usuario
   const getThemeColors = () => {
@@ -84,9 +91,9 @@ export default function LoginPage() {
     const newErrors: Partial<LoginData> = {}
 
     if (!loginData.email.trim()) {
-      newErrors.email = 'El email es requerido'
-    } else if (!/\S+@\S+\.\S+/.test(loginData.email)) {
-      newErrors.email = 'El email no es válido'
+      newErrors.email = 'El email o DNI es requerido'
+    } else if (!/\S+@\S+\.\S+/.test(loginData.email) && !/^\d{8}$/.test(loginData.email)) {
+      newErrors.email = 'Debe ser un email válido o un DNI de 8 dígitos'
     }
 
     if (!loginData.password) {
@@ -178,24 +185,56 @@ export default function LoginPage() {
       }
     } catch (error) {
       console.error('Error en el login:', error)
-      setLoginError('Error al iniciar sesión. Inténtalo de nuevo.')
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        setLoginError('Error de conexión: Verifica que el servidor esté ejecutándose en http://localhost:8002')
+      } else {
+        setLoginError('Error al iniciar sesión. Inténtalo de nuevo.')
+      }
     } finally {
       setIsLoading(false)
     }
   }
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!forgotPasswordEmail.trim()) {
+      setForgotPasswordError('El email es requerido')
+      return
+    }
+
+    if (!/\S+@\S+\.\S+/.test(forgotPasswordEmail)) {
+      setForgotPasswordError('El email no es válido')
+      return
+    }
+
+    setForgotPasswordLoading(true)
+    setForgotPasswordError('')
+    
+    try {
+      // Simular envío de email
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      setForgotPasswordSent(true)
+    } catch (error) {
+      console.error('Error al enviar email:', error)
+      setForgotPasswordError('Error al enviar el email. Inténtalo de nuevo.')
+    } finally {
+      setForgotPasswordLoading(false)
+    }
+  }
+
   return (
-    <div className="h-screen bg-[#81D4FF] dark:from-gray-900 dark:to-gray-800">
-        <div className="w-full h-full flex gap-8 items-stretch p-8">
+    <div className="min-h-screen bg-[#81D4FF] dark:from-gray-900 dark:to-gray-800">
+        <div className="w-full min-h-full flex gap-8 items-stretch p-4 lg:p-8 items-center">
           {/* Columna de animación */}
-          <div className="w-full hidden lg:block h-full">
+          <div className="w-full hidden lg:block">
             <LottieAnimation
               className="w-full h-full"
             />
           </div>
 
         {/* Columna del formulario */}
-        <div className="w-fit h-full flex flex-col justify-center">
+        <div className="w-full lg:w-fit h-full flex flex-col justify-center mx-auto max-w-md lg:max-w-none">
           {/* Botón de regreso */}
           <Link 
             href="/"
@@ -206,7 +245,7 @@ export default function LoginPage() {
           </Link>
 
           {/* Tarjeta de login */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 w-full w-[448px]">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 w-full lg:w-[448px]">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
               Iniciar Sesión
@@ -268,12 +307,12 @@ export default function LoginPage() {
             {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Email
+                Email o DNI
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
-                  type="email"
+                  type="text"
                   id="email"
                   name="email"
                   value={loginData.email}
@@ -281,7 +320,7 @@ export default function LoginPage() {
                   className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 ${colors.primaryFocus} focus:border-transparent dark:bg-gray-700 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 ${
                     errors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                   }`}
-                  placeholder="tu@email.com"
+                  placeholder="tu@email.com o DNI"
                 />
               </div>
               {errors.email && (
@@ -367,9 +406,13 @@ export default function LoginPage() {
                   Recordarme
                 </label>
               </div>
-              <Link href="/forgot-password" className={`text-sm ${colors.primaryText} ${colors.primaryHover}`}>
+              <button
+                type="button"
+                onClick={() => setShowForgotPasswordModal(true)}
+                className={`text-sm ${colors.primaryText} ${colors.primaryHover}`}
+              >
                 ¿Olvidaste tu contraseña?
-              </Link>
+              </button>
             </div>
 
             {/* Botón de login */}
@@ -399,8 +442,8 @@ export default function LoginPage() {
             </h3>
             <div className={`text-xs ${colors.primaryText} space-y-1`}>
               <div><strong>Industria:</strong> admin@agrotech.com / secret123</div>
-              <div><strong>Agricultor Admin:</strong> juan@agrosacha.pe / secret123</div>
-              <div><strong>Agricultor Worker:</strong> maria@agrosacha.pe / secret123</div>
+              <div><strong>Agricultor Admin:</strong> juan@agrosacha.pe o 12345678 / secret123</div>
+              <div><strong>Agricultor Worker:</strong> maria@agrosacha.pe o 87654321 / secret123</div>
             </div>
           </div>
 
@@ -416,6 +459,154 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+
+      {/* Modal de Recuperar Contraseña */}
+      {showForgotPasswordModal && (
+        <>
+          {/* Overlay */}
+          <div 
+            className="fixed inset-0 bg-black/50 z-40"
+            onClick={() => {
+              setShowForgotPasswordModal(false)
+              setForgotPasswordEmail('')
+              setForgotPasswordError('')
+              setForgotPasswordSent(false)
+            }}
+          />
+          
+          {/* Modal */}
+          <div className="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md relative animate-in zoom-in-95 duration-200 pointer-events-auto">
+              {/* Botón cerrar */}
+              <button
+                onClick={() => {
+                  setShowForgotPasswordModal(false)
+                  setForgotPasswordEmail('')
+                  setForgotPasswordError('')
+                  setForgotPasswordSent(false)
+                }}
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+              >
+                <X className="h-6 w-6" />
+              </button>
+
+              <div className="p-8">
+                {!forgotPasswordSent ? (
+                  <>
+                    <div className="text-center mb-8">
+                      <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                        Recuperar Contraseña
+                      </h2>
+                      <p className="text-gray-600 dark:text-gray-400">
+                        Ingresa tu email para recibir un enlace de recuperación
+                      </p>
+                    </div>
+
+                    <form onSubmit={handleForgotPassword} className="space-y-6">
+                      {/* Email */}
+                      <div>
+                        <label htmlFor="forgot-email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Email
+                        </label>
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                          <input
+                            type="email"
+                            id="forgot-email"
+                            value={forgotPasswordEmail}
+                            onChange={(e) => {
+                              setForgotPasswordEmail(e.target.value)
+                              if (forgotPasswordError) setForgotPasswordError('')
+                            }}
+                            className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 ${colors.primaryRing} focus:border-transparent dark:bg-gray-700 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 ${
+                              forgotPasswordError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                            }`}
+                            placeholder="tu@email.com"
+                          />
+                        </div>
+                        {forgotPasswordError && (
+                          <p className="mt-1 text-sm text-red-600 dark:text-red-400 flex items-center">
+                            <AlertCircle className="h-4 w-4 mr-1" />
+                            {forgotPasswordError}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Botón de envío */}
+                      <button
+                        type="submit"
+                        disabled={forgotPasswordLoading}
+                        className={`w-full ${colors.primary === 'blue' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'} text-white py-3 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center`}
+                      >
+                        {forgotPasswordLoading ? (
+                          <>
+                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                            Enviando...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="h-5 w-5 mr-2" />
+                            Enviar Enlace
+                          </>
+                        )}
+                      </button>
+                    </form>
+
+                    {/* Información adicional */}
+                    <div className={`mt-6 p-4 ${colors.primaryBg} rounded-lg`}>
+                      <p className={`text-sm ${colors.primaryText}`}>
+                        <strong>Nota:</strong> Si no recibes el email en unos minutos, 
+                        revisa tu carpeta de spam.
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-center">
+                      <div className={`mx-auto h-16 w-16 ${colors.primaryLight} rounded-full flex items-center justify-center mb-6`}>
+                        <CheckCircle className={`h-8 w-8 ${colors.primaryText}`} />
+                      </div>
+                      
+                      <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                        Email Enviado
+                      </h2>
+                      
+                      <p className="text-gray-600 dark:text-gray-400 mb-6">
+                        Hemos enviado un enlace de recuperación a <strong>{forgotPasswordEmail}</strong>. 
+                        Revisa tu bandeja de entrada y sigue las instrucciones.
+                      </p>
+
+                      <div className="space-y-4">
+                        <button
+                          onClick={() => {
+                            setForgotPasswordSent(false)
+                            setForgotPasswordEmail('')
+                          }}
+                          className={`w-full ${colors.primary === 'blue' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'} text-white py-3 px-4 rounded-lg transition-colors`}
+                        >
+                          Enviar otro email
+                        </button>
+                        
+                        <button
+                          onClick={() => {
+                            setShowForgotPasswordModal(false)
+                            setForgotPasswordEmail('')
+                            setForgotPasswordError('')
+                            setForgotPasswordSent(false)
+                          }}
+                          className={`block w-full text-center ${colors.primaryText} ${colors.primaryHover} py-2 transition-colors`}
+                        >
+                          Cerrar
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   )
 }

@@ -153,7 +153,7 @@ export default function RegistroPage() {
     <div className="h-screen bg-[#81D4FF] dark:from-gray-900 dark:to-gray-800">
         <div className="w-full h-full flex gap-8 items-stretch p-8">
           {/* Columna de animación */}
-          <div className="w-full hidden lg:block h-full">
+          <div className="w-full hidden lg:block">
             <LottieAnimation
               className="w-full h-full"
             />
@@ -171,7 +171,7 @@ export default function RegistroPage() {
           </Link>
 
           {/* Tarjeta de registro */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 w-full w-[448px]">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 w-full lg:w-[448px]">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
               Crear Cuenta

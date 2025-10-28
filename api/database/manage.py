@@ -47,12 +47,14 @@ class DatabaseManager:
             
             # Admin user
             admin = Trabajador(id_empresa=1, dni="12345678", 
+                             email="juan@agrosacha.pe",
                              nombre_completo="Juan Pérez", password_hash=password_hash, 
                              rol="admin", activo=True)
             db.add(admin)
             
             # Regular worker
             worker = Trabajador(id_empresa=1, dni="87654321", 
+                              email="maria@agrosacha.pe",
                               nombre_completo="María García", password_hash=password_hash, 
                               rol="worker", activo=True)
             db.add(worker)
