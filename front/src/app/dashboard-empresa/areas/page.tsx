@@ -100,7 +100,7 @@ export default function AreasEmpresaPage() {
   const [mostrarModal, setMostrarModal] = useState(false)
   const [areaSeleccionada, setAreaSeleccionada] = useState<Area | null>(null)
 
-  const areasFiltradas = areas.filter(area => {
+  const areasFiltradas = areas.filter((area: Area) => {
     const coincideEstado = filtroEstado === 'todos' || area.estado === filtroEstado
     const coincideBusqueda = busqueda === '' || 
       area.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
@@ -215,9 +215,9 @@ export default function AreasEmpresaPage() {
 
   const estadisticas = {
     total: areas.length,
-    activas: areas.filter(a => a.estado === 'activa').length,
-    enMantenimiento: areas.filter(a => a.estado === 'mantenimiento').length,
-    totalSensores: areas.reduce((acc, area) => acc + area.sensores.length, 0)
+    activas: areas.filter((a: Area) => a.estado === 'activa').length,
+    enMantenimiento: areas.filter((a: Area) => a.estado === 'mantenimiento').length,
+    totalSensores: areas.reduce((acc: number, area: Area) => acc + area.sensores.length, 0)
   }
 
   const handleCrearArea = () => {
@@ -232,7 +232,7 @@ export default function AreasEmpresaPage() {
 
   const handleEliminarArea = (id: string) => {
     if (confirm('¿Estás seguro de que quieres eliminar esta área?')) {
-      setAreas(areas.filter(area => area.id !== id))
+      setAreas(areas.filter((area: Area) => area.id !== id))
     }
   }
 

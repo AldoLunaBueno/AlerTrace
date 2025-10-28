@@ -29,7 +29,7 @@ export default function CultivosPage() {
     }
   }
 
-  const filteredCultivos = cultivos.filter(cultivo => {
+  const filteredCultivos = cultivos.filter((cultivo: any) => {
     const matchesSearch = cultivo.tipo_cultivo.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (cultivo.variedad && cultivo.variedad.toLowerCase().includes(searchTerm.toLowerCase()))
     

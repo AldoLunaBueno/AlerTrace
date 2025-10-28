@@ -149,7 +149,7 @@ export default function PersonalEmpresaPage() {
 
   const handleConfirmDelete = () => {
     if (userToDelete) {
-      setUsers(users.filter(user => user.id !== userToDelete.id))
+      setUsers(users.filter((user: PersonalUser) => user.id !== userToDelete.id))
       setShowDeleteModal(false)
       setUserToDelete(null)
     }

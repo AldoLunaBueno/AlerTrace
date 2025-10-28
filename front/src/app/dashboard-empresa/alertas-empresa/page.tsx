@@ -140,7 +140,7 @@ export default function AlertasEmpresaPage() {
     }
   }
 
-  const alertasFiltradas = alertas.filter(alerta => {
+  const alertasFiltradas = alertas.filter((alerta: Alerta) => {
     const coincideTipo = filtroTipo === 'todos' || alerta.tipo === filtroTipo
     const coincideLeidas = filtroLeidas === 'todos' || 
       (filtroLeidas === 'leidas' && alerta.leida) ||
@@ -155,15 +155,15 @@ export default function AlertasEmpresaPage() {
 
   const estadisticas = {
     total: alertas.length,
-    noLeidas: alertas.filter(a => !a.leida).length,
-    criticas: alertas.filter(a => a.tipo === 'critica').length,
-    advertencias: alertas.filter(a => a.tipo === 'advertencia').length
+    noLeidas: alertas.filter((a: Alerta) => !a.leida).length,
+    criticas: alertas.filter((a: Alerta) => a.tipo === 'critica').length,
+    advertencias: alertas.filter((a: Alerta) => a.tipo === 'advertencia').length
   }
 
   const marcarComoLeida = async (id: string) => {
     try {
       await api.alertas.resolveAlerta(parseInt(id))
-      setAlertas(alertas.map(alerta => 
+      setAlertas(alertas.map((alerta: Alerta) => 
         alerta.id === id ? { ...alerta, leida: true } : alerta
       ))
     } catch (err) {
@@ -172,7 +172,7 @@ export default function AlertasEmpresaPage() {
   }
 
   const marcarTodasComoLeidas = () => {
-    setAlertas(alertas.map(alerta => ({ ...alerta, leida: true })))
+    setAlertas(alertas.map((alerta: Alerta) => ({ ...alerta, leida: true })))
   }
 
   // Loading state
