@@ -1,8 +1,12 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 import time
 import os
 from api.worker import init_worker
+
+# Importar el monitoreo
+from api.monitoring import setup_logging, PrometheusMiddleware, HealthMonitor, setup_sentry
+from prometheus_client import generate_latest
 
 # Importar los routers modulares
 from api.routes import auth, health
@@ -19,6 +23,11 @@ app = FastAPI(
     description="Sistema de monitoreo IoT agrícola",
     version="1.1.0"
 )
+
+# Configurar monitoreo
+logger = setup_logging()
+setup_sentry()
+app.add_middleware(PrometheusMiddleware)
 
 # Configuración CORS
 origins = [
@@ -58,6 +67,24 @@ def root():
         "documentation": "/docs",
         "timestamp": int(time.time())
     }
+
+
+@app.get("/health", tags=["Monitoreo"])
+async def health_check():
+    """Endpoint de health check con información del sistema"""
+    return HealthMonitor.get_health_check(
+        version="1.1.0",
+        db_session=None  # Se puede pasar sesión de DB si es necesario
+    )
+
+
+@app.get("/metrics", tags=["Monitoreo"])
+async def metrics():
+    """Endpoint de Prometheus metrics para monitoreo"""
+    return Response(
+        content=generate_latest(),
+        media_type="text/plain; charset=utf-8"
+    )
 
 # Iniciar el worker cuando se inicia la aplicación
 @app.on_event("startup")

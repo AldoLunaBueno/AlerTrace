@@ -49,7 +49,7 @@ export default function AlertasAgricultorPage() {
         const alertasData = await api.alertas.getAlertas()
         
         // Convertir datos de la API al formato del componente
-        const alertasFormatted: AlertaAgricultor[] = alertasData.map((alerta: any) => ({
+        const alertasFormatted: AlertaAgricultor[] = (alertasData as any[]).map((alerta: any) => ({
           id: (alerta.id_alerta || alerta.id).toString(),
           tipo: mapTipoAPI(alerta.tipo_alerta || alerta.tipo),
           severidad: mapSeveridadAPI(alerta.severidad),
