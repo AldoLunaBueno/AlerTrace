@@ -20,7 +20,7 @@ RUN pnpm build
 
 
 # Production stage - Imagen optimizada
-FROM node:20-alpine
+FROM node:20-alpine AS production
 
 # Instalar pnpm
 RUN npm install -g pnpm@8.15.0

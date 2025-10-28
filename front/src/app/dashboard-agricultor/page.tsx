@@ -192,7 +192,7 @@ export default function DashboardAgricultor() {
         const sensoresData = await api.sensors.getSensors()
         
         // Convertir datos de la API al formato esperado por el componente
-        const sensoresFormatted: SensorData[] = sensoresData.map(sensor => {
+        const sensoresFormatted: SensorData[] = (sensoresData as any[]).map(sensor => {
           const valor = getValorSensor(sensor)
           return {
             id: sensor.id_sensor.toString(),

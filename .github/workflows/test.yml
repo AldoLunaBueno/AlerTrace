@@ -100,7 +100,7 @@ jobs:
         continue-on-error: true
       
       - name: Upload Trivy results to GitHub Security
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: 'trivy-results.sarif'
         continue-on-error: true
@@ -122,8 +122,23 @@ jobs:
           cd backend
           pip install -r requirements.txt
       
+      - name: Set environment variables for testing
+        run: |
+          cat > /tmp/.env << 'ENV_EOF'
+          POSTGRES_HOST=localhost
+          POSTGRES_PORT=5432
+          POSTGRES_USER=test_user
+          POSTGRES_PASSWORD=test_password
+          POSTGRES_DB=test_db
+          SUPABASE_URL=https://test.supabase.co
+          SUPABASE_KEY=test_key
+          JWT_SECRET_KEY=test_secret_key_for_ci_cd_only
+          ENVIRONMENT=testing
+          ENV_EOF
+      
       - name: Check API imports
         run: |
           cd backend
+          export $(cat /tmp/.env | xargs)
           python -c "from api.main import app; print('✓ API imports OK')"
 
