@@ -82,7 +82,7 @@ export default function AlertasEmpresaPage() {
         const alertasData = await api.alertas.getAlertas()
         
         // Convertir datos de la API
-        const alertasFormatted: Alerta[] = alertasData.map(alerta => ({
+        const alertasFormatted: Alerta[] = (alertasData as any[]).map(alerta => ({
           id: alerta.id_alerta.toString(),
           tipo: mapSeveridadToTipo(alerta.severidad),
           titulo: alerta.titulo || generateTitulo(alerta),
