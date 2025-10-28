@@ -120,8 +120,10 @@ export default function AlertasEmpresaPage() {
     }
   }
 
-  const generateTitulo = (alerta: AlertaData): string => {
-    return `Alerta de ${alerta.tipo}${alerta.sensor_id ? ` - Sensor ${alerta.sensor_id}` : ''}`
+  const generateTitulo = (alerta: any): string => {
+    const tipo = alerta.tipo_alerta || alerta.tipo || 'Desconocido'
+    const sensorId = alerta.id_sensor || alerta.sensor_id
+    return `Alerta de ${tipo}${sensorId ? ` - Sensor ${sensorId}` : ''}`
   }
 
   const getEquipoFromSensor = (sensorId?: number): string => {
