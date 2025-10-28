@@ -70,9 +70,12 @@ export default function SensoresPage() {
         nombre: newName,
         device_id: newDeviceId,
         tipo: newType,
-        ubicacion_sensor: 'No especificada',
+        id_empresa: 1, // Mock value
         activo: true,
-        ultima_lectura: null as any
+        intervalo_lectura: 300, // Mock value (5 minutes)
+        ubicacion_sensor: 'No especificada',
+        ultima_lectura: new Date(),
+        fecha_instalacion: new Date()
       }
       setSensores([nuevo, ...sensores])
       setSaving(false)
