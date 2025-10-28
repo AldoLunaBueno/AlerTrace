@@ -162,7 +162,7 @@ export default function AlertasEmpresaPage() {
 
   const marcarComoLeida = async (id: string) => {
     try {
-      await api.alertas.resolveAlerta(parseInt(id))
+      await api.alertas.resolveAlerta(id)
       setAlertas(alertas.map((alerta: Alerta) => 
         alerta.id === id ? { ...alerta, leida: true } : alerta
       ))
