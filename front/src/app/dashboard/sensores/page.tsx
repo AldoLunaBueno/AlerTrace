@@ -37,7 +37,7 @@ export default function SensoresPage() {
     }
   }
 
-  const filteredSensores = sensores.filter(sensor => {
+  const filteredSensores = sensores.filter((sensor: any) => {
     const matchesSearch = sensor.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          sensor.device_id.toLowerCase().includes(searchTerm.toLowerCase())
     
@@ -66,13 +66,13 @@ export default function SensoresPage() {
     // MOCK: simular alta y actualización en memoria
     setTimeout(() => {
       const nuevo: SensorResponse = {
-        id_sensor: Math.max(0, ...sensores.map(s => s.id_sensor)) + 1,
+        id_sensor: Math.max(0, ...sensores.map((s: any) => s.id_sensor)) + 1,
         nombre: newName,
         device_id: newDeviceId,
         tipo: newType,
         ubicacion_sensor: 'No especificada',
         activo: true,
-        ultima_lectura: null
+        ultima_lectura: null as any
       }
       setSensores([nuevo, ...sensores])
       setSaving(false)

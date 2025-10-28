@@ -33,7 +33,7 @@ export default function AlertasPage() {
     try {
       await mockApi.resolveAlerta(alertaId)
       // Actualizar la lista local
-      setAlertas(alertas.map(alerta => 
+      setAlertas(alertas.map((alerta: any) => 
         alerta.id_alerta === alertaId 
           ? { ...alerta, resuelta: true }
           : alerta
@@ -43,7 +43,7 @@ export default function AlertasPage() {
     }
   }
 
-  const filteredAlertas = alertas.filter(alerta => {
+  const filteredAlertas = alertas.filter((alerta: any) => {
     const matchesSeverity = filterSeverity === 'all' || alerta.severidad.toLowerCase() === filterSeverity
     const matchesResolved = filterResolved === 'all' || 
                            (filterResolved === 'resolved' && alerta.resuelta) ||
@@ -83,7 +83,7 @@ export default function AlertasPage() {
           </div>
           <div className="mt-4 sm:mt-0 flex items-center space-x-4">
             <span className="text-sm text-gray-600 dark:text-gray-300">
-              {alertas.filter(a => !a.resuelta).length} alertas pendientes
+              {alertas.filter((a: any) => !a.resuelta).length} alertas pendientes
             </span>
           </div>
         </div>
