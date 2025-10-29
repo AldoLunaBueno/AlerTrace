@@ -11,7 +11,8 @@ import {
   LogOut,
   User,
   MapPin,
-  Database
+  Database,
+  Leaf
 } from 'lucide-react'
 import { AlertRaceLogo } from '../AlertRaceLogo'
 
