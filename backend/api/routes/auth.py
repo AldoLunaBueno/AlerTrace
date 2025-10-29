@@ -142,6 +142,9 @@ async def login(credentials: LoginRequest, db: Session = Depends(get_db)):
                 nombre = nombre_parts[0].capitalize() if len(nombre_parts) > 0 else "Usuario"
                 apellido = nombre_parts[1].capitalize() if len(nombre_parts) > 1 else ""
                 
+                # Generar DNI único basado en UUID
+                dni_unique = str(uuid.uuid4())[:12]  # Primeros 12 caracteres del UUID
+                
                 # Determinar la empresa basada en la empresa (temporalmente)
                 # Buscar si existe una empresa con email similar o usar por defecto
                 empresa = db.query(Empresa).filter(

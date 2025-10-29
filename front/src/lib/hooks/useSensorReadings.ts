@@ -9,10 +9,10 @@ export function useSensorReadings(areaId?: string) {
   useEffect(() => {
     const fetchReadings = async () => {
       try {
-        const data = await sensorsApi.getLatestReadings()
+        const data = await sensorsApi.getLatestReadings() as any
         // Si hay areaId, filtramos los sensores de esa área
         const filteredData = areaId 
-          ? data.filter(sensor => sensor.ubicacion_sensor === areaId)
+          ? data.filter((sensor: any) => sensor.ubicacion_sensor === areaId)
           : data
         setReadings(filteredData)
         setError(null)

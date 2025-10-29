@@ -6,8 +6,6 @@ const nextConfig = {
     config.resolve.alias['@'] = path.resolve(__dirname, 'src')
     return config
   },
-  // No usar standalone en Vercel
-  // ...(process.env.NODE_ENV === 'production' && { output: 'standalone' }),
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8002',
   },

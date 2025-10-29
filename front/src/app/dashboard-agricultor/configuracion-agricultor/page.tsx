@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { User, MapPin, Phone, Mail, Settings, Bell, Shield, Save, Eye, EyeOff, Key } from 'lucide-react'
-import { LocationPicker } from '@/components/shared/location-picker'
+import { LocationPickerWrapper } from '@/components/shared/location-picker-wrapper'
 import { api } from '@/lib/api'
 
 interface PerfilAgricultor {
@@ -31,6 +32,7 @@ interface ConfiguracionNotificaciones {
 
 
 export default function ConfiguracionAgricultorPage() {
+  const router = useRouter()
   const [perfil, setPerfil] = useState<PerfilAgricultor | null>(null)
   const [notificaciones, setNotificaciones] = useState<ConfiguracionNotificaciones>({
     alertasCriticas: true,
@@ -95,7 +97,7 @@ export default function ConfiguracionAgricultorPage() {
   }
 
   const handleLocationChange = (locationData: any) => {
-    setPerfil(prev => {
+    setPerfil((prev: PerfilAgricultor | null) => {
       if (!prev) return null
       return {
         ...prev,
@@ -128,7 +130,7 @@ export default function ConfiguracionAgricultorPage() {
           </div>
           <p className="text-red-700 mb-4">{error}</p>
           <button
-            onClick={() => window.location.reload()}
+            onClick={() => router.refresh()}
             className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
           >
             Reintentar
@@ -252,7 +254,7 @@ export default function ConfiguracionAgricultorPage() {
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                           Ubicación del Predio
                         </label>
-                        <LocationPicker
+                        <LocationPickerWrapper
                           initialLocation={perfil.latitud && perfil.longitud ? {
                             lat: perfil.latitud,
                             lng: perfil.longitud,

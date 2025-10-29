@@ -19,7 +19,8 @@ from api.routes.blockchain import router as blockchain_router
 app = FastAPI(
     title="Alertrace API",
     description="Sistema de monitoreo IoT agrícola",
-    version="1.1.0"
+    version="1.1.0",
+    redirect_slashes=False  # No redirigir / a sin / automáticamente
 )
 
 # Configurar monitoreo
