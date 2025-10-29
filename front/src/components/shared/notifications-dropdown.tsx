@@ -35,7 +35,7 @@ export function NotificationsDropdown({ userType }: NotificationsDropdownProps) 
 
     const fetchNotifications = async (currentReadNotifications: Set<string>) => {
       try {
-        const alertas: AlertaResponse[] = await api.alertas.getAlertas()
+        const alertas: AlertaResponse[] = await api.alertas.getAlertas() as any
         
         // Convertir las alertas más recientes (últimas 10) a notificaciones
         // Solo mostrar alertas no resueltas
@@ -76,7 +76,7 @@ export function NotificationsDropdown({ userType }: NotificationsDropdownProps) 
     return () => clearInterval(interval)
   }, [userType])
 
-  const unreadCount = notifications.filter(n => !n.read).length
+  const unreadCount = notifications.filter((n: Notification) => !n.read).length
 
   const markAsRead = (notificationId: string) => {
     const newReadNotifications = new Set(readNotifications)
@@ -87,7 +87,7 @@ export function NotificationsDropdown({ userType }: NotificationsDropdownProps) 
     localStorage.setItem(`readNotifications_${userType}`, JSON.stringify(Array.from(newReadNotifications)))
     
     // Actualizar el estado de la notificación
-    setNotifications(prev => prev.map(notification => 
+    setNotifications((prev: Notification[]) => prev.map((notification: Notification) => 
       notification.id === notificationId 
         ? { ...notification, read: true }
         : notification
@@ -95,7 +95,7 @@ export function NotificationsDropdown({ userType }: NotificationsDropdownProps) 
   }
 
   const markAllAsRead = () => {
-    const allIds = notifications.map(n => n.id)
+    const allIds = notifications.map((n: Notification) => n.id)
     const newReadNotifications = new Set(Array.from(readNotifications).concat(allIds))
     setReadNotifications(newReadNotifications)
     
@@ -103,15 +103,15 @@ export function NotificationsDropdown({ userType }: NotificationsDropdownProps) 
     localStorage.setItem(`readNotifications_${userType}`, JSON.stringify(Array.from(newReadNotifications)))
     
     // Actualizar todas las notificaciones como leídas
-    setNotifications(prev => prev.map(notification => ({ ...notification, read: true })))
+    setNotifications((prev: Notification[]) => prev.map((notification: Notification) => ({ ...notification, read: true })))
   }
 
   const resolveAlert = async (notificationId: string) => {
     try {
-      const response = await api.alertas.resolveAlerta(parseInt(notificationId))
+      const response = await api.alertas.resolveAlerta(notificationId)
       
       // Remover la notificación de la lista ya que ahora está resuelta
-      setNotifications(prev => prev.filter(notification => notification.id !== notificationId))
+      setNotifications((prev: Notification[]) => prev.filter((notification: Notification) => notification.id !== notificationId))
       
       // También remover del localStorage de leídas
       const newReadNotifications = new Set(Array.from(readNotifications))
@@ -122,7 +122,7 @@ export function NotificationsDropdown({ userType }: NotificationsDropdownProps) 
       // Actualizar inmediatamente las notificaciones desde la API
       setTimeout(async () => {
         try {
-          const alertas: AlertaResponse[] = await api.alertas.getAlertas()
+          const alertas: AlertaResponse[] = await api.alertas.getAlertas() as any
           const currentSavedReadNotifications = localStorage.getItem(`readNotifications_${userType}`)
           const currentReadNotificationsSet = currentSavedReadNotifications 
             ? new Set<string>(JSON.parse(currentSavedReadNotifications) as string[])
